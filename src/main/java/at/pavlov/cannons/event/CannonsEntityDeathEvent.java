@@ -10,7 +10,7 @@ import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
 
-public class CannonsEntityDeathEvent extends Event
+public class cCannonsEntityDeathEvent extends Event
 {
     private static final HandlerList handlers = new HandlerList();
     private LivingEntity killedEntity;

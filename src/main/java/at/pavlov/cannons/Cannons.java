@@ -23,7 +23,6 @@ import at.pavlov.cannons.scheduler.ProjectileObserver;
 import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
