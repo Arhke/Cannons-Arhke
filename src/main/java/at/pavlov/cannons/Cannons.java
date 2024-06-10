@@ -21,7 +21,6 @@ import at.pavlov.cannons.projectile.ProjectileStorage;
 import at.pavlov.cannons.scheduler.FakeBlockHandler;
 import at.pavlov.cannons.scheduler.ProjectileObserver;
 import net.milkbowl.vault.economy.Economy;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -190,7 +189,6 @@ public final class Cannons extends JavaPlugin
 				}
 			}, 6000L, 6000L);
 
-			Metrics metrics = new Metrics(this, 4048);
 
             logDebug("Time to enable cannons: " + new DecimalFormat("0.00").format((System.nanoTime() - startTime)/1000000.0) + "ms");
 

@@ -2,6 +2,7 @@ package at.pavlov.cannons.event;
 
 import java.util.UUID;
 
+import org.antlr.v4.runtime.misc.NotNull;
 import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -10,23 +11,25 @@ import at.pavlov.cannons.projectile.Projectile;
 
 public class ProjectileImpactEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
+    private org.bukkit.entity.Projectile projectile_entity;
     private Projectile projectile;
     private Location impactLocation;
     private final UUID shooter;
     private boolean cancelled;
 
-    public ProjectileImpactEvent(Projectile projectile, Location impactLocation, UUID shooter) {
-	this.projectile = projectile;
-	this.impactLocation = impactLocation;
-	this.shooter = shooter;
-	this.cancelled = false;
+    public ProjectileImpactEvent(@NotNull org.bukkit.entity.Projectile projectile_entity, Projectile projectile, Location impactLocation, UUID shooter) {
+        this.projectile_entity = projectile_entity;
+        this.projectile = projectile;
+        this.impactLocation = impactLocation;
+        this.shooter = shooter;
+        this.cancelled = false;
     }
 
     public UUID getShooterUID() {
 	return this.shooter;
     }
 
-    public Location getImpactLocation() {
+    public @NotNull Location getImpactLocation() {
 	return this.impactLocation;
     }
 
@@ -40,6 +43,10 @@ public class ProjectileImpactEvent extends Event {
 
     public void setProjectile(Projectile projectile) {
 	this.projectile = projectile;
+    }
+
+    public org.bukkit.entity.Projectile getProjectileEntity() {
+        return projectile_entity;
     }
 
     public boolean isCancelled() {
