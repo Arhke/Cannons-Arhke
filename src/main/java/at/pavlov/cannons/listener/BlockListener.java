@@ -4,15 +4,11 @@ package at.pavlov.cannons.listener;
 import at.pavlov.cannons.Cannons;
 import at.pavlov.cannons.Enum.BreakCause;
 import at.pavlov.cannons.cannon.Cannon;
-import at.pavlov.cannons.container.ItemHolder;
 import at.pavlov.cannons.event.ProjectileImpactEvent;
 import at.pavlov.cannons.utils.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.ExplosionDamageCalculator;
-import org.apache.commons.math.exception.OutOfRangeException;
-import org.apache.commons.math.linear.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -27,12 +23,11 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+import org.ejml.dense.row.factory.DecompositionFactory_DDRM;
 
-import java.sql.SQLOutput;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class BlockListener implements Listener
 {
@@ -240,8 +235,8 @@ public class BlockListener implements Listener
                         z = (int)direction.getVectorZ(entry);
                 if (locMap[x][y] == null) {
                     entryCount++;
-                    totalX += x;
-                    totalY += y;
+                    totalX += x-2;
+                    totalY += y-2;
                     totalZ += z;
                     locMap[x][y] = (double) z;
                 }else if (direction.isPositive() && locMap[x][y] > z || !direction.isPositive() && locMap[x][y] < z){
@@ -258,8 +253,9 @@ public class BlockListener implements Listener
         totalY/=entryCount;
         totalZ/=entryCount;
         double[] centroid = direction.getDoubleArrayFromDirectionVector(totalX, totalY, totalZ);
+        Bukkit.broadcastMessage("Centroid: " + Arrays.toString(centroid));
         //============<Real Matrix Initialization>===============
-        RealMatrix matrix = new Array2DRowRealMatrix(entryCount,3);
+        double[][] matrix = new double[entryCount][3];
         entryCount = 0;
         for (int x = -2; x <= 2; x++) {
             for (int y = -2; y <= 2; y++) {
@@ -267,46 +263,53 @@ public class BlockListener implements Listener
                 if (value == null){
                     continue;
                 }
-                try {
-                    double[] row = direction.getDoubleArrayFromDirectionVector(x, y, value);
-                    new Location(event.getImpactLocation().getWorld(), row[0], row[1], row[2]).add(event.getImpactLocation().getBlockX(), event.getImpactLocation().getBlockY(), event.getImpactLocation().getBlockZ() ).getBlock().setType(Material.BEDROCK);
-                    row[0]-=centroid[0];
-                    row[1]-=centroid[1];
-                    row[2]-=centroid[2];
+                double[] row = direction.getDoubleArrayFromDirectionVector(x, y, value);
+                new Location(event.getImpactLocation().getWorld(), row[0], row[1], row[2]).add(event.getImpactLocation().getBlockX(), event.getImpactLocation().getBlockY(), event.getImpactLocation().getBlockZ() ).getBlock().setType(Material.BEDROCK);
+                row[0]-=centroid[0];
+                row[1]-=centroid[1];
+                row[2]-=centroid[2];
 
-                    matrix.setRow(entryCount, row);
+                matrix[entryCount][0] = row[0];
+                matrix[entryCount][1] = row[1];
+                matrix[entryCount][2] = row[2];
 
 //                    bc(Arrays.toString(row));
-                    entryCount++;
-                }catch(OutOfRangeException e){
-                    e.printStackTrace();
-                }
+                entryCount++;
             }
         }
 
+        // Convert to EJML matrix
+        DMatrixRMaj X = new DMatrixRMaj(matrix);
+        Bukkit.broadcastMessage(X+"");
+        Bukkit.broadcastMessage("==================");
 
-        //=============<EigenVector>======================
-        matrix = matrix.transpose().multiply(matrix);
-        EigenDecomposition ed = new EigenDecompositionImpl(matrix, 1);
-        RealVector normalVector;
-        try{
-            normalVector = ed.getEigenvector(2);
-            Bukkit.broadcastMessage(ed.getEigenvector(0)+" " + ed.getRealEigenvalue(0));
-            Bukkit.broadcastMessage(ed.getEigenvector(1)+" " + ed.getRealEigenvalue(1));
-            Bukkit.broadcastMessage(ed.getEigenvector(2)+" " + ed.getRealEigenvalue(2));
-        }
-        catch(ArrayIndexOutOfBoundsException e){
-            e.printStackTrace();
-            return;
-        }
+        // Compute the centroid
+        // Center the points
 
+        // Perform SVD
+        org.ejml.interfaces.decomposition.SingularValueDecomposition<DMatrixRMaj> svd = DecompositionFactory_DDRM.svd(true, true, true);
+        svd.decompose(X);
+
+        // Extract the plane normal from the smallest singular value
+        //U * Σ * V^T
+        DMatrixRMaj V = svd.getV(null, false);
+        Bukkit.broadcastMessage(V+"");
+        Bukkit.broadcastMessage(svd.numberOfSingularValues() + "" + svd.getW(null));
+        DMatrixRMaj normalVector = new DMatrixRMaj(3, 1);
+        DMatrixRMaj W = svd.getW(null);
+        double w0 = W.get(0,0), w1 = W.get(1,1), w2 = W.get(2,2);
+        double wmin = Math.min(w0, Math.min(w1,w2));
+        if(wmin == w0) CommonOps_DDRM.extract(V, 0, 3, 0, 1, normalVector, 0, 0);
+        else if(wmin == w1) CommonOps_DDRM.extract(V, 0, 3, 1, 2, normalVector, 0, 0);
+        else if(wmin == w2) CommonOps_DDRM.extract(V, 0, 3, 2, 3, normalVector, 0, 0);
 
         //====================<Penetration Calculation>===============
         double pen = event.getProjectile().getPenetration()+(Math.random()*0.6-0.3)*event.getProjectile().getPenetration();
 //        bc("starting pen" + pen);
 //        Bukkit.broadcastMessage("Pen " + pen);
         Vector projVelocity = event.getProjectileEntity().getVelocity();
-        Vector perp = new Vector(normalVector.getEntry(0), normalVector.getEntry(1), normalVector.getEntry(2));
+        Vector perp = new Vector(normalVector.get(0), normalVector.get(1), normalVector.get(2));
+//        Bukkit.getPlayer("Arhke").teleport(event.getImpactLocation().clone().setDirection(perp));
         Bukkit.broadcastMessage(perp.toString());
         if(bt != null && !bt.isCancelled()){
             bt.cancel();
@@ -315,29 +318,21 @@ public class BlockListener implements Listener
             int i = 0;
             @Override
             public void run(){
-                WrappedLocation wl = new WrappedLocation(event.getImpactLocation());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
-                event.getImpactLocation().getWorld().spawnParticle(Particle.FALLING_DRIPSTONE_LAVA, wl.get(), 5);
-                wl.addModify(perp.getX(), perp.getY(), perp.getZ());
+                Location locc = event.getImpactLocation();
+                event.getImpactLocation().getWorld().spawnParticle(Particle.DRIPPING_DRIPSTONE_LAVA,
+                        new Location(event.getImpactLocation().getWorld(), locc.getX() + centroid[0],
+                                locc.getY() + centroid[1], locc.getZ() + centroid[2]), 5);
+                double d = locc.getX()*normalVector.get(0) + locc.getY()*normalVector.get(1) + locc.getZ()*normalVector.get(2);
+                for(double x = -2; x < 2; x+=0.5){
+                    for(double y = -2; y < 2; y+=0.5){
+                        double z = (d-(locc.getX()+x)*normalVector.get(0) - (locc.getY()+y)*normalVector.get(1))/normalVector.get(2);
+                        event.getImpactLocation().getWorld().spawnParticle(Particle.DRIPPING_DRIPSTONE_WATER,
+                                new Location(event.getImpactLocation().getWorld(), locc.getX() + x,
+                                locc.getY() + y, z), 5);
+                    }
+                }
+
+
                 if (i++ > 9999){
                     this.cancel();
                 }

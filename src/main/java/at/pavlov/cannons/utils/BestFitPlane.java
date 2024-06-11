@@ -17,7 +17,7 @@ public class BestFitPlane {
 //        System.out.println("Plane equation: " + normal.get(0) + "x + " + normal.get(1) + "y + " + normal.get(2) + "z = " + d);
 //    }
 
-    private static DMatrixRMaj computeCentroid(DMatrixRMaj X) {
+    public static DMatrixRMaj computeCentroid(DMatrixRMaj X) {
         int numPoints = X.numRows;
         DMatrixRMaj centroid = new DMatrixRMaj(1, 3);
 
@@ -31,7 +31,7 @@ public class BestFitPlane {
         return centroid;
     }
 
-    private static DMatrixRMaj centerPoints(DMatrixRMaj X, DMatrixRMaj centroid) {
+    public static DMatrixRMaj centerPoints(DMatrixRMaj X, DMatrixRMaj centroid) {
         int numPoints = X.numRows;
         DMatrixRMaj centeredX = new DMatrixRMaj(numPoints, 3);
 
