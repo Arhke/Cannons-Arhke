@@ -19,8 +19,12 @@
                 <targetPath>.</targetPath>
                 <filtering>true</filtering>
                 <directory>${basedir}/src/main/resources/</directory>
+
                 <includes>
-                    <include>plugin.yml</include>
+                    <include>designs/*</include>
+                    <include>localization/*</include>
+                    <include>projectiles/*</include>
+                    <include>*.yml</include>
                 </includes>
             </resource>
         </resources>
@@ -93,7 +97,7 @@
                                         </transformers>
                                         <artifactSet>
                                             <includes>
-                                                <include>org.apache.commons:*</include>
+                                                <include>org.ejml:*</include>
                                             </includes>
                                         </artifactSet>
                                         <filters>
@@ -241,7 +245,11 @@
             <version>2.8.0</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.ejml</groupId>
+            <artifactId>ejml-all</artifactId>
+            <version>0.41</version>
+        </dependency>
     </dependencies>
 
 </project>

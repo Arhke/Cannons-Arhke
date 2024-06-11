@@ -36,12 +36,12 @@ import java.util.Objects;
 
 public class BlockListener implements Listener
 {
-	private final Cannons plugin;
+    private final Cannons plugin;
 
-	public BlockListener(Cannons plugin)
-	{
-		this.plugin = plugin;
-	}
+    public BlockListener(Cannons plugin)
+    {
+        this.plugin = plugin;
+    }
 
 
     @EventHandler
@@ -175,7 +175,7 @@ public class BlockListener implements Listener
             //breaking cannon while player is in selection (command) mode is not allowed
             Cannon aimingCannon = null;
             if (plugin.getAiming().isInAimingMode(event.getPlayer().getUniqueId()))
-                 aimingCannon = plugin.getAiming().getCannonInAimingMode(event.getPlayer());
+                aimingCannon = plugin.getAiming().getCannonInAimingMode(event.getPlayer());
 
             if (cannon.isDestructibleBlock(event.getBlock().getLocation()) && (aimingCannon==null||!cannon.equals(aimingCannon)) && !plugin.getCommandListener().isSelectingMode(event.getPlayer())) {
                 plugin.getCannonManager().removeCannon(cannon, false, true, BreakCause.PlayerBreak);
@@ -269,7 +269,7 @@ public class BlockListener implements Listener
                 }
                 try {
                     double[] row = direction.getDoubleArrayFromDirectionVector(x, y, value);
-                    new Location(event.getImpactLocation().getWorld(), row[0], row[1], row[2]).add(event.getImpactLocation().getBlockX(), event.getImpactLocation().getBlockY(), event.getImpactLocation().getBlockZ() ).getBlock().setType(Material.GLASS);
+                    new Location(event.getImpactLocation().getWorld(), row[0], row[1], row[2]).add(event.getImpactLocation().getBlockX(), event.getImpactLocation().getBlockY(), event.getImpactLocation().getBlockZ() ).getBlock().setType(Material.BEDROCK);
                     row[0]-=centroid[0];
                     row[1]-=centroid[1];
                     row[2]-=centroid[2];
@@ -291,9 +291,9 @@ public class BlockListener implements Listener
         RealVector normalVector;
         try{
             normalVector = ed.getEigenvector(2);
-//            bc(ed.getEigenvector(0)+" " + ed.getRealEigenvalue(0));
-//            bc(ed.getEigenvector(1)+" " + ed.getRealEigenvalue(1));
-//            bc(ed.getEigenvector(2)+" " + ed.getRealEigenvalue(2));
+            Bukkit.broadcastMessage(ed.getEigenvector(0)+" " + ed.getRealEigenvalue(0));
+            Bukkit.broadcastMessage(ed.getEigenvector(1)+" " + ed.getRealEigenvalue(1));
+            Bukkit.broadcastMessage(ed.getEigenvector(2)+" " + ed.getRealEigenvalue(2));
         }
         catch(ArrayIndexOutOfBoundsException e){
             e.printStackTrace();
