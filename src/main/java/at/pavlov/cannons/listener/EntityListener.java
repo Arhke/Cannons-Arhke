@@ -95,7 +95,8 @@ public class EntityListener implements Listener
      * searches for destroyed cannons in the explosion event and removes cannons parts which can't be destroyed in an explosion.
      * @param blocklist list of blocks involved in the event
      */
-    public void ExplosionEventHandler(List<Block> blocklist){
+    public void
+	ExplosionEventHandler(List<Block> blocklist){
         HashSet<UUID> remove = new HashSet<UUID>();
 
         // first search if a barrel block was destroyed.

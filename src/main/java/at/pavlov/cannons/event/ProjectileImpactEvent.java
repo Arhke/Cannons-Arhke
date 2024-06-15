@@ -15,11 +15,13 @@ public class ProjectileImpactEvent extends Event {
     private Projectile projectile;
     private Location impactLocation;
     private final UUID shooter;
+    private float explosion_power;
     private boolean cancelled;
 
-    public ProjectileImpactEvent(@NotNull org.bukkit.entity.Projectile projectile_entity, Projectile projectile, Location impactLocation, UUID shooter) {
+    public ProjectileImpactEvent(@NotNull org.bukkit.entity.Projectile projectile_entity, Projectile projectile, float explosion_power, Location impactLocation, UUID shooter) {
         this.projectile_entity = projectile_entity;
         this.projectile = projectile;
+        this.explosion_power = explosion_power;
         this.impactLocation = impactLocation;
         this.shooter = shooter;
         this.cancelled = false;
@@ -64,5 +66,9 @@ public class ProjectileImpactEvent extends Event {
 
     public static HandlerList getHandlerList() {
 	return handlers;
+    }
+
+    public float getExplosionPower() {
+        return explosion_power;
     }
 }

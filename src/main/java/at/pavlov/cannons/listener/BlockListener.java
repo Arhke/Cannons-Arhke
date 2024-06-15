@@ -5,16 +5,16 @@ import at.pavlov.cannons.Cannons;
 import at.pavlov.cannons.Enum.BreakCause;
 import at.pavlov.cannons.cannon.Cannon;
 import at.pavlov.cannons.event.ProjectileImpactEvent;
-import at.pavlov.cannons.utils.*;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.level.Explosion;
+import at.pavlov.cannons.projectile.ProjectileProperties;
+import at.pavlov.cannons.utils.Direction3D;
+import at.pavlov.cannons.utils.RayTrace;
+import at.pavlov.cannons.utils.Vector3D;
+import at.pavlov.cannons.utils.WrappedLocation;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.WallSign;
-import org.bukkit.craftbukkit.v1_20_R4.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,15 +27,18 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.factory.DecompositionFactory_DDRM;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 public class BlockListener implements Listener
 {
-    private final Cannons plugin;
+    private static Cannons plugin;
 
-    public BlockListener(Cannons plugin)
+    public BlockListener(Cannons plugins)
     {
-        this.plugin = plugin;
+        plugin = plugins;
     }
 
 
@@ -194,9 +197,8 @@ public class BlockListener implements Listener
         }
 
     }
-    BukkitTask bt = null;
-    @EventHandler
-    public void cannonBallHit(ProjectileImpactEvent event) {
+    static BukkitTask bt = null;
+    public static void cannonBallHit(ProjectileImpactEvent event) {
 
         List<Vector3D> locList = new ArrayList<>();
 
@@ -253,7 +255,7 @@ public class BlockListener implements Listener
         totalY/=entryCount;
         totalZ/=entryCount;
         double[] centroid = direction.getDoubleArrayFromDirectionVector(totalX, totalY, totalZ);
-        Bukkit.broadcastMessage("Centroid: " + Arrays.toString(centroid));
+//        Bukkit.broadcastMessage("Centroid: " + Arrays.toString(centroid));
         //============<Real Matrix Initialization>===============
         double[][] matrix = new double[entryCount][3];
         entryCount = 0;
@@ -264,7 +266,7 @@ public class BlockListener implements Listener
                     continue;
                 }
                 double[] row = direction.getDoubleArrayFromDirectionVector(x, y, value);
-                new Location(event.getImpactLocation().getWorld(), row[0], row[1], row[2]).add(event.getImpactLocation().getBlockX(), event.getImpactLocation().getBlockY(), event.getImpactLocation().getBlockZ() ).getBlock().setType(Material.BEDROCK);
+//                new Location(event.getImpactLocation().getWorld(), row[0], row[1], row[2]).add(event.getImpactLocation().getBlockX(), event.getImpactLocation().getBlockY(), event.getImpactLocation().getBlockZ() ).getBlock().setType(Material.BEDROCK);
                 row[0]-=centroid[0];
                 row[1]-=centroid[1];
                 row[2]-=centroid[2];
@@ -280,8 +282,8 @@ public class BlockListener implements Listener
 
         // Convert to EJML matrix
         DMatrixRMaj X = new DMatrixRMaj(matrix);
-        Bukkit.broadcastMessage(X+"");
-        Bukkit.broadcastMessage("==================");
+//        Bukkit.broadcastMessage(X+"");
+//        Bukkit.broadcastMessage("==================");
 
         // Compute the centroid
         // Center the points
@@ -293,8 +295,8 @@ public class BlockListener implements Listener
         // Extract the plane normal from the smallest singular value
         //U * Σ * V^T
         DMatrixRMaj V = svd.getV(null, false);
-        Bukkit.broadcastMessage(V+"");
-        Bukkit.broadcastMessage(svd.numberOfSingularValues() + "" + svd.getW(null));
+//        Bukkit.broadcastMessage(V+"");
+//        Bukkit.broadcastMessage(svd.numberOfSingularValues() + "" + svd.getW(null));
         DMatrixRMaj normalVector = new DMatrixRMaj(3, 1);
         DMatrixRMaj W = svd.getW(null);
         double w0 = W.get(0,0), w1 = W.get(1,1), w2 = W.get(2,2);
@@ -304,13 +306,15 @@ public class BlockListener implements Listener
         else if(wmin == w2) CommonOps_DDRM.extract(V, 0, 3, 2, 3, normalVector, 0, 0);
 
         //====================<Penetration Calculation>===============
-        double pen = event.getProjectile().getPenetration()+(Math.random()*0.6-0.3)*event.getProjectile().getPenetration();
+        double pen = event.getProjectile().getPenetration()*(new Random().nextGaussian()*0.15+1);
 //        bc("starting pen" + pen);
 //        Bukkit.broadcastMessage("Pen " + pen);
         Vector projVelocity = event.getProjectileEntity().getVelocity();
         Vector perp = new Vector(normalVector.get(0), normalVector.get(1), normalVector.get(2));
 //        Bukkit.getPlayer("Arhke").teleport(event.getImpactLocation().clone().setDirection(perp));
-        Bukkit.broadcastMessage(perp.toString());
+//        Bukkit.broadcastMessage(perp.toString());
+        Player player = Bukkit.getPlayer(event.getShooterUID());
+        assert player != null;
         if(bt != null && !bt.isCancelled()){
             bt.cancel();
         }
@@ -319,35 +323,32 @@ public class BlockListener implements Listener
             @Override
             public void run(){
                 Location locc = event.getImpactLocation();
-                event.getImpactLocation().getWorld().spawnParticle(Particle.DRIPPING_DRIPSTONE_LAVA,
+                player.spawnParticle(Particle.DRIPPING_DRIPSTONE_LAVA,
                         new Location(event.getImpactLocation().getWorld(), locc.getX() + centroid[0],
                                 locc.getY() + centroid[1], locc.getZ() + centroid[2]), 5);
                 double d = locc.getX()*normalVector.get(0) + locc.getY()*normalVector.get(1) + locc.getZ()*normalVector.get(2);
                 for(double x = -2; x < 2; x+=0.5){
                     for(double y = -2; y < 2; y+=0.5){
                         double z = (d-(locc.getX()+x)*normalVector.get(0) - (locc.getY()+y)*normalVector.get(1))/normalVector.get(2);
-                        event.getImpactLocation().getWorld().spawnParticle(Particle.DRIPPING_DRIPSTONE_WATER,
+                        player.spawnParticle(Particle.DRIPPING_DRIPSTONE_WATER,
                                 new Location(event.getImpactLocation().getWorld(), locc.getX() + x,
                                 locc.getY() + y, z), 5);
                     }
                 }
 
 
-                if (i++ > 9999){
+                if (i++ > 1200){
                     this.cancel();
                 }
             }
         }.runTaskTimer(plugin, 1, 1);
         double impactCos = Math.abs(Math.cos(projVelocity.angle(perp)));
-//        bc("impactCos" + impactCos);
-        Player player = Bukkit.getPlayer(event.getShooterUID());
-        assert player != null;
         if (impactCos < 0.34202014332){
 
             if (Math.random() > 0.5)player.sendMessage("Ricochet ~ !");
             else player.sendMessage("We didn't even scratch them.");
-            player.getWorld().playSound(event.getImpactLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 5, 1);
-            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 5, 1);
+            player.getWorld().playSound(event.getImpactLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 5, 5);
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 5, 5);
             event.setCancelled(true);
             return;
         }
@@ -359,16 +360,14 @@ public class BlockListener implements Listener
 
 
         //==================<RayCasting>==============
-        double startPen = pen;
         RayTrace rt = new RayTrace(projVelocity);
         Location rayLoc = event.getProjectileEntity().getLocation().clone();
         List<Block> blockList = new ArrayList<>();
         boolean hasReachedWall = false;
         int yetToReachWall = 0;
-        int damage = 0;
-        while(pen>0){
-//            bc(rayLoc.getBlock().getType()+"");
-//            bc(rayLoc.getBlock().getType().isSolid()+"");
+        boolean superBreaker = event.getProjectile().hasProperty(ProjectileProperties.SUPERBREAKER);
+        while(pen>=0){
+            //Trace to the wall
             if (!rayLoc.getBlock().getType().isSolid()){
                 if (hasReachedWall){
                     break;
@@ -379,7 +378,6 @@ public class BlockListener implements Listener
                     if(yetToReachWall < 10){
                         continue;
                     }else{
-                        event.setCancelled(true);
                         return;
                     }
                 }
@@ -388,73 +386,35 @@ public class BlockListener implements Listener
             }
 
             Vector nextVector = rt.nextInterSection(rayLoc);
-            try {
-
-//                float blastResist = blast.getInt(-1,rayLoc.getBlock().getType().name());
-                float blastResist = (float)(Math.random()*2);
-                pen-= blastResist == -1?1:blastResist;
-                if (pen <= 0) break;
-                if(nextVector.length() > 0.1 && rayLoc.getBlock().getType() != Material.AIR){
-                    if(blastResist == -1)blockList.add(rayLoc.getBlock());
-                    else damage++;
-                }
-            } catch (ClassCastException e) {
-                e.printStackTrace();
-                return;
+            pen-=nextVector.length();
+            if (pen <= 0 && !superBreaker)break; //didn't pen
+            if(nextVector.length() > 0.1 && rayLoc.getBlock().getType() != Material.AIR){
+                superBreaker = false;
+                blockList.add(rayLoc.getBlock());
             }
             rayLoc.add(nextVector);
         }
-        double blastDamage = event.getProjectile().getExplosionPower();
 
         if (pen > 0) {
             //penned
-            blockList.forEach(Block::breakNaturally);
-            if (Math.random() > 0.3)player.sendMessage(ChatColor.GREEN+"Penetration.");
+            if(event.getProjectile().getPenetrationDamage()) {
+                EntityExplodeEvent bee = new EntityExplodeEvent(event.getProjectileEntity(), event.getImpactLocation(), blockList,
+                        0);
+                Bukkit.getPluginManager().callEvent(bee);
+                if(!bee.isCancelled())
+                    blockList.forEach(Block::breakNaturally);
+            }
+            if (Math.random() > 0.3)player.sendMessage(ChatColor.GREEN+"Penetration~");
             else if (Math.random() > 0.5) player.sendMessage(ChatColor.GREEN+"They're Hit!");
-            else player.sendMessage(ChatColor.GREEN+"Good shot. Let's get them again!");
-            player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_HIT, 3, 3);
-            Bukkit.broadcastMessage("damaged: " + damage);
-//            cd.getTown().bankDeposit(-damage);
-//            if(cd.getTown().getBank() == 0){
-//            }
-            Explosion explosion = new Explosion(((CraftWorld) Objects.requireNonNull(event.getImpactLocation().getWorld())).getHandle(),
-                    null, null,  new CustomExplosionDamageCalculator(), event.getImpactLocation().getX(), event.getImpactLocation().getY(), event.getImpactLocation().getZ(),
-                    event.getProjectile().getExplosionPower(), event.getProjectile().isProjectileOnFire(), Explosion.BlockInteraction.DESTROY, ParticleTypes.EXPLOSION, ParticleTypes.EXPLOSION_EMITTER, SoundEvents.GENERIC_EXPLODE);
-            explosion.explode();
-            explosion.finalizeExplosion(true);
+            else player.sendMessage(ChatColor.GREEN+"Good shot! Let's get them again!");
+//            player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_HIT, 3, 3);
         }else{
             //did not Pen
             player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_HIT, 3, 3);
-            if (Math.random() > 0.3)player.sendMessage("We weren't able to penetrate them.");
-            else if (Math.random() > 0.5) player.sendMessage("That one bounced right off.");
-            else player.sendMessage("That one didn't go through.");
-            Bukkit.broadcastMessage("damaged: "+blastDamage*0.15);
-            Explosion explosion = new Explosion(((CraftWorld) Objects.requireNonNull(event.getImpactLocation().getWorld())).getHandle(),
-                    null, null,  new CustomExplosionDamageCalculator(), event.getImpactLocation().getX(), event.getImpactLocation().getY(), event.getImpactLocation().getZ(),
-                    event.getProjectile().getExplosionPower(), event.getProjectile().isProjectileOnFire(), Explosion.BlockInteraction.DESTROY, ParticleTypes.EXPLOSION, ParticleTypes.EXPLOSION_EMITTER, SoundEvents.GENERIC_EXPLODE);
-            explosion.explode();
-            explosion.finalizeExplosion(true);
-//            cd.getTown().bankDeposit(-blastDamage*0.15);
-//            if(cd.getTown().getBank() == 0){
-//            }
-//            List<Block> blockBreaks = new ArrayList<>();
-//            for(int i = -1; i <= 1; i++) {
-//                for (int j = -1; j <= 1; j++) {
-//                    for (int k = -1; k <= 1; k++) {
-//                        Block block = new WrappedLocation(event.getImpactLocation()).add(i,j,k).getBlock();
-//                        if(block.getType().getBlastResistance() < blastDamage){
-//                            blockBreaks.add(block);
-//                        }
-//                    }
-//                }
-//            }
-//            new EntityExplodeEvent(event.getProjectileEntity(),event.getImpactLocation(), blockBreaks,1f);
-//            blockBreaks.forEach(Block::breakNaturally);
-
-
-            // if block dura is less than blast then break block
+            if (Math.random() > 0.3)player.sendMessage("Exploded on Impact!");
+            else if (Math.random() > 0.5) player.sendMessage("Kaboom!");
+            else player.sendMessage("BOOM!");
         }
 
-        event.setCancelled(true);
     }
 }
