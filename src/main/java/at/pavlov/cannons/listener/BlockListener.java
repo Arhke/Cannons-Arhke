@@ -63,7 +63,7 @@ public class BlockListener implements Listener
         }
 
         //search for destroyed cannons
-        plugin.getEntityListener().ExplosionEventHandler(event.blockList());
+        plugin.getEntityListener().explosionEventHandler(event.blockList());
     }
 
     /**
@@ -306,13 +306,10 @@ public class BlockListener implements Listener
         else if(wmin == w2) CommonOps_DDRM.extract(V, 0, 3, 2, 3, normalVector, 0, 0);
 
         //====================<Penetration Calculation>===============
-        double pen = event.getProjectile().getPenetration()*(new Random().nextGaussian()*0.15+1);
-//        bc("starting pen" + pen);
-//        Bukkit.broadcastMessage("Pen " + pen);
-        Vector projVelocity = event.getProjectileEntity().getVelocity();
-        Vector perp = new Vector(normalVector.get(0), normalVector.get(1), normalVector.get(2));
-//        Bukkit.getPlayer("Arhke").teleport(event.getImpactLocation().clone().setDirection(perp));
-//        Bukkit.broadcastMessage(perp.toString());
+        Random random = new Random();
+        double pen = event.getProjectile().getPenetration()*(random.nextGaussian()*0.15+1);
+        Vector projectileVelocity = event.getProjectileEntity().getVelocity();
+        Vector perpendicularProjectileVelocity = new Vector(normalVector.get(0), normalVector.get(1), normalVector.get(2));
         Player player = Bukkit.getPlayer(event.getShooterUID());
         assert player != null;
         if(bt != null && !bt.isCancelled()){
@@ -322,17 +319,17 @@ public class BlockListener implements Listener
             int i = 0;
             @Override
             public void run(){
-                Location locc = event.getImpactLocation();
+                Location impactLocation = event.getImpactLocation();
                 player.spawnParticle(Particle.DRIPPING_DRIPSTONE_LAVA,
-                        new Location(event.getImpactLocation().getWorld(), locc.getX() + centroid[0],
-                                locc.getY() + centroid[1], locc.getZ() + centroid[2]), 5);
-                double d = locc.getX()*normalVector.get(0) + locc.getY()*normalVector.get(1) + locc.getZ()*normalVector.get(2);
+                        new Location(event.getImpactLocation().getWorld(), impactLocation.getX() + centroid[0],
+                                impactLocation.getY() + centroid[1], impactLocation.getZ() + centroid[2]), 5);
+                double d = impactLocation.getX()*normalVector.get(0) + impactLocation.getY()*normalVector.get(1) + impactLocation.getZ()*normalVector.get(2);
                 for(double x = -2; x < 2; x+=0.5){
                     for(double y = -2; y < 2; y+=0.5){
-                        double z = (d-(locc.getX()+x)*normalVector.get(0) - (locc.getY()+y)*normalVector.get(1))/normalVector.get(2);
+                        double z = (d-(impactLocation.getX()+x)*normalVector.get(0) - (impactLocation.getY()+y)*normalVector.get(1))/normalVector.get(2);
                         player.spawnParticle(Particle.DRIPPING_DRIPSTONE_WATER,
-                                new Location(event.getImpactLocation().getWorld(), locc.getX() + x,
-                                locc.getY() + y, z), 5);
+                                new Location(event.getImpactLocation().getWorld(), impactLocation.getX() + x,
+                                impactLocation.getY() + y, z), 5);
                     }
                 }
 
@@ -342,7 +339,7 @@ public class BlockListener implements Listener
                 }
             }
         }.runTaskTimer(plugin, 1, 1);
-        double impactCos = Math.abs(Math.cos(projVelocity.angle(perp)));
+        double impactCos = Math.abs(Math.cos(projectileVelocity.angle(perpendicularProjectileVelocity)));
         if (impactCos < 0.34202014332){
 
             if (Math.random() > 0.5)player.sendMessage("Ricochet ~ !");
@@ -360,7 +357,7 @@ public class BlockListener implements Listener
 
 
         //==================<RayCasting>==============
-        RayTrace rt = new RayTrace(projVelocity);
+        RayTrace rt = new RayTrace(projectileVelocity);
         Location rayLoc = event.getProjectileEntity().getLocation().clone();
         List<Block> blockList = new ArrayList<>();
         boolean hasReachedWall = false;

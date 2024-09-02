@@ -83,7 +83,6 @@ public class SignListener implements Listener
 				final TextComponent line2 = Component.text().content(cannon.getSignString(1)).build();
 				final TextComponent line3 = Component.text().content(cannon.getSignString(2)).build();
 				final TextComponent line4 = Component.text().content(cannon.getSignString(3)).build();
-				final TextComponent line5 = Component.text().content(cannon.getSignString(4)).build();
 
 				signChangeEvent.line(0, line1);
 				signChangeEvent.line(1, line2);

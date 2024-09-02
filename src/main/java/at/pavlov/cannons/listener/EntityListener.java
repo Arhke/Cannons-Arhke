@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import at.pavlov.cannons.Enum.BreakCause;
-import at.pavlov.cannons.container.ItemHolder;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Projectile;
@@ -70,7 +69,7 @@ public class EntityListener implements Listener
 	 * @param event
 	 */
 	@EventHandler
-	public void ProjectileHit(ProjectileHitEvent event)
+	public void onProjectileHit(ProjectileHitEvent event)
 	{
         plugin.getProjectileManager().detonateProjectile(event.getEntity());
 	}
@@ -80,7 +79,7 @@ public class EntityListener implements Listener
 	 * @param event
 	 */
 	@EventHandler
-	public void EntityExplode(EntityExplodeEvent event)
+	public void onEntityExplode(EntityExplodeEvent event)
 	{
 		plugin.logDebug("Explode event listener called");
 
@@ -88,15 +87,14 @@ public class EntityListener implements Listener
 		if (event.isCancelled())
 			return;
 		
-		ExplosionEventHandler(event.blockList());
+		explosionEventHandler(event.blockList());
 	}
 
     /**
      * searches for destroyed cannons in the explosion event and removes cannons parts which can't be destroyed in an explosion.
      * @param blocklist list of blocks involved in the event
      */
-    public void
-	ExplosionEventHandler(List<Block> blocklist){
+    public void explosionEventHandler(List<Block> blocklist){
         HashSet<UUID> remove = new HashSet<UUID>();
 
         // first search if a barrel block was destroyed.
