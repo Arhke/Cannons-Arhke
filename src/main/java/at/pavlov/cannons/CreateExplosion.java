@@ -1,24 +1,29 @@
 package at.pavlov.cannons;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.World;
+import at.pavlov.cannons.Enum.EntityDataType;
+import at.pavlov.cannons.Enum.FakeBlockType;
+import at.pavlov.cannons.Enum.ProjectileCause;
+import at.pavlov.cannons.config.Config;
+import at.pavlov.cannons.container.DeathCause;
+import at.pavlov.cannons.container.SoundHolder;
+import at.pavlov.cannons.container.SpawnEntityHolder;
+import at.pavlov.cannons.container.SpawnMaterialHolder;
+import at.pavlov.cannons.event.CannonsEntityDeathEvent;
+import at.pavlov.cannons.event.ProjectileImpactEvent;
+import at.pavlov.cannons.projectile.FlyingProjectile;
+import at.pavlov.cannons.projectile.Projectile;
+import at.pavlov.cannons.projectile.ProjectileProperties;
+import at.pavlov.cannons.utils.CannonsUtil;
+import at.pavlov.cannons.utils.CustomExplosionDamageCalculator;
+import at.pavlov.cannons.utils.DelayedTask;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.Explosion;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.v1_21_R1.CraftWorld;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -43,6 +48,9 @@ import at.pavlov.cannons.projectile.Projectile;
 import at.pavlov.cannons.projectile.ProjectileProperties;
 import at.pavlov.cannons.utils.CannonsUtil;
 import at.pavlov.cannons.utils.DelayedTask;
+import java.util.*;
+
+import java.util.HashSet;
 
 import static at.pavlov.cannons.listener.BlockListener.cannonBallHit;
 
@@ -115,6 +123,104 @@ public class CreateExplosion {
         return true;
     }
 
+//    /**
+//     * breaks blocks that are on the trajectory of the projectile. The projectile is
+//     * stopped by impenetratable blocks (obsidian)
+//     *
+//     * @param cannonball
+//     * @return the location after the piercing event
+//     */
+//    private Location blockBreaker(FlyingProjectile cannonball, org.bukkit.entity.Projectile projectile_entity) {
+//        Projectile projectile = cannonball.getProjectile();
+//
+//
+//        // has this projectile the super breaker property and makes block damage
+//        Boolean superbreaker = projectile.hasProperty(ProjectileProperties.SUPERBREAKER);
+//        Boolean doesBlockDamage = projectile.getPenetrationDamage();
+//
+//        // list of destroy blocks
+//        LinkedList<Block> blocklist = new LinkedList<>();
+//
+//        Vector vel = projectile_entity.getVelocity();
+//        Location snowballLoc = projectile_entity.getLocation();
+//        World world = projectile_entity.getWorld();
+//        Location impactLoc = snowballLoc.clone();
+//        this.plugin.logDebug("Projectile impact: " + impactLoc.getBlockX() + ", " + impactLoc.getBlockY() + ", "
+//                + impactLoc.getBlockZ() + " direction: " + impactLoc.getDirection());
+//
+//        // find surface and set this as new impact location
+//        impactLoc = CannonsUtil.findSurface(impactLoc, vel);
+//        this.plugin.logDebug("Impact surface: " + impactLoc.getBlockX() + ", " + impactLoc.getBlockY() + ", "
+//                + impactLoc.getBlockZ());
+//
+//        // the cannonball will only break blocks if it has penetration.
+//        Random r = new Random();
+//        double randomness = (1 + r.nextGaussian() / 5.0);
+//        int penetration = (int) Math.round(
+//                randomness * cannonball.getProjectile().getPenetration() * Math.pow(vel.length() / projectile.getVelocity(), 2));
+//        if (penetration < 0)
+//            penetration = 0;
+//        plugin.logDebug("velocity: " + vel.length() + " percent of max velocity: " + vel.length() / projectile.getVelocity() + " penetration: " + penetration + " randomness: " + randomness);
+//
+//        blocklist.clear();
+//        if (penetration > 0) {
+//            BlockIterator iter2 = new BlockIterator(world, impactLoc.toVector(), vel.normalize(), 0, penetration);
+//            while (iter2.hasNext()) {
+//                Block next = iter2.next();
+//                // if block can be destroyed the the iterator will check the next block. Else
+//                // the projectile will explode
+//                if (!this.breakBlock(next, blocklist, superbreaker, doesBlockDamage)) {
+//                    // found indestructible block
+//                    break;
+//                }
+//                impactLoc = next.getLocation();
+//            }
+//
+//            this.plugin.logDebug("Penetration loc: " + impactLoc.getBlockX() + ", " + impactLoc.getBlockY() + ", "
+//                    + impactLoc.getBlockZ());
+//
+//            if (superbreaker) {
+//                // small explosion on impact
+//                Block block = impactLoc.getBlock();
+//                this.breakBlock(block, blocklist, true, doesBlockDamage);
+//                this.breakBlock(block.getRelative(BlockFace.UP), blocklist, true, doesBlockDamage);
+//                this.breakBlock(block.getRelative(BlockFace.DOWN), blocklist, true, doesBlockDamage);
+//                this.breakBlock(block.getRelative(BlockFace.SOUTH), blocklist, true, doesBlockDamage);
+//                this.breakBlock(block.getRelative(BlockFace.WEST), blocklist, true, doesBlockDamage);
+//                this.breakBlock(block.getRelative(BlockFace.EAST), blocklist, true, doesBlockDamage);
+//                this.breakBlock(block.getRelative(BlockFace.NORTH), blocklist, true, doesBlockDamage);
+//            }
+//
+//            // no eventhandling if the list is empty
+//            if (blocklist.size() > 0) {
+//                // fire custom piercing event to notify other plugins (blocks can be removed)
+//                ProjectilePiercingEvent piercingEvent = new ProjectilePiercingEvent(projectile, impactLoc, blocklist);
+//                this.plugin.getServer().getPluginManager().callEvent(piercingEvent);
+//
+//                // create bukkit event
+//                EntityExplodeEvent event = new EntityExplodeEvent(projectile_entity, impactLoc, piercingEvent.getBlockList(), 1.0f);
+//                this.plugin.getServer().getPluginManager().callEvent(event);
+//
+//                this.plugin.logDebug("was the cannons explode event canceled: " + event.isCancelled());
+//                // if not canceled break all given blocks
+//                if (!event.isCancelled()) {
+//                    // break water, lava, obsidian if cannon projectile
+//                    for (int i = 0; i < event.blockList().size(); i++) {
+//                        Block pBlock = event.blockList().get(i);
+//                        // break the block, no matter what it is
+//                        this.BreakBreakNaturally(pBlock, event.getYield());
+//                    }
+//                }
+//
+//            }
+//        }
+//
+//        // add the impact velocity as direction of the impactLoc, direction will be normalized
+//        impactLoc.setDirection(projectile_entity.getVelocity());
+//
+//        return impactLoc;
+//    }
+
     /***
      * Breaks a block with a certain yield
      *
@@ -161,10 +267,10 @@ public class CreateExplosion {
             double dist = impactLoc.distance(loc) + 1;
             // calculate velocity away from the impact (speed in y makes problems and entity
             // sinks in ground)
-            Vector vector = loc.clone().subtract(impactLoc).toVector().normalize().multiply(entityVelocity / dist);// .multiply(new
+            Vector vect = loc.clone().subtract(impactLoc).toVector().normalize().multiply(entityVelocity / dist);// .multiply(new
             // Vector(1.0,0.0,1.0));
             // set the entity velocity
-            entity.setVelocity(vector);
+            entity.setVelocity(vect);
 
             // add some specific data values
             // TNT
@@ -294,6 +400,26 @@ public class CreateExplosion {
             }
         }
 
+        // //get distance form the center + 1 to avoid division by zero
+        // double dist = impactLoc.distance(loc) + 1;
+        // //calculate veloctiy away from the impact (speed in y makes problems and
+        // entity sinks in ground)
+        // Vector vect =
+        // loc.clone().subtract(impactLoc).toVector().normalize().multiply(entityVelocity/dist).multiply(new
+        // Vector(1.0,0.0,1.0));
+        // String placestr = loc.getX() + " " + loc.getY() + " " + loc.getZ();
+        // String data = entityHolder.getData().replace("IMPACT_VELOCITY",
+        // "["+vect.getX()+"," +vect.getY()+","+vect.getZ()+"]");
+        // plugin.logDebug("/summon " + entityHolder.getType() + " " + placestr + " " +
+        // data);
+        // try {
+        // Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "summon " +
+        // entityHolder.getType() + " " + placestr + " " + data);
+        // }
+        // catch (Exception e) {
+        // plugin.logDebug("Dispatch error: " + e);
+        // }
+
     }
 
     /**
@@ -377,9 +503,9 @@ public class CreateExplosion {
             // get distance form the center + 1, to avoid division by zero
             double dist = impactLoc.distance(placeLoc) + 1;
             // calculate veloctiy away from the impact
-            Vector vector = placeLoc.clone().subtract(impactLoc).toVector().normalize().multiply(entityVelocity / dist);
+            Vector vect = placeLoc.clone().subtract(impactLoc).toVector().normalize().multiply(entityVelocity / dist);
             // set the entity velocity
-            entity.setVelocity(vector);
+            entity.setVelocity(vect);
             // set some other properties
             entity.setDropItem(false);
             this.plugin.logDebug("Spawned block: " + item.toString() + " at impact");
@@ -466,14 +592,14 @@ public class CreateExplosion {
         int blockingBlocks = 0;
 
         // vector pointing from impact to target
-        Vector vector = target.toVector().clone().subtract(impact.toVector());
-        int length = (int) Math.ceil(vector.length());
-        vector.normalize();
+        Vector vect = target.toVector().clone().subtract(impact.toVector());
+        int length = (int) Math.ceil(vect.length());
+        vect.normalize();
 
         Location impactClone = impact.clone();
         for (int i = 2; i <= length; i++) {
             // check if line of sight is blocked
-            if (impactClone.add(vector).getBlock().getType() != Material.AIR) {
+            if (impactClone.add(vect).getBlock().getType() != Material.AIR) {
                 blockingBlocks++;
             }
         }
@@ -583,6 +709,9 @@ public class CreateExplosion {
     private double getDirectHitDamage(FlyingProjectile cannonball, Entity target) {
         Projectile projectile = cannonball.getProjectile();
 
+        // if (cannonball.getProjectileEntity()==null)
+        // return 0.0;
+
         if (target instanceof LivingEntity) {
             LivingEntity living = (LivingEntity) target;
 
@@ -655,6 +784,10 @@ public class CreateExplosion {
         impactLoc = CannonsUtil.findSurface(impactLoc, projectile_entity.getVelocity());
         impactLoc.setDirection(projectile_entity.getVelocity());
 
+        // breaks blocks from the impact of the projectile to the location of the
+        // explosion
+//        Location impactLoc = this.blockBreaker(cannonball, projectile_entity);
+        // impactLoc = projectile_entity.getLocation();
         cannonball.setImpactLocation(impactLoc);
         World world = impactLoc.getWorld();
 
@@ -673,6 +806,8 @@ public class CreateExplosion {
         if (projectile.isExplosionPowerDependsOnVelocity()) {
             double vel = projectile_entity.getVelocity().length();
             double maxVel = projectile.getVelocity();
+//            double maxEnergy = Math.pow(maxVel, 2);
+//            double energy = Math.pow(vel, 2);
             explosion_power *= vel / maxVel;
         }
 
@@ -682,6 +817,13 @@ public class CreateExplosion {
             this.plugin.logDebug("Underwater explosion not allowed. Event cancelled");
             return;
         }
+
+        // deflect cannonball
+//        if (this.deflectProjectile(cannonball)) {
+//            // cannonball was deflected - no explosion
+//            this.plugin.logDebug("Cannonball was deflected");
+//            return;
+//        }
 
         boolean incendiary = projectile.hasProperty(ProjectileProperties.INCENDIARY);
         boolean blockDamage = projectile.getExplosionDamage();
@@ -711,17 +853,13 @@ public class CreateExplosion {
                         explosion_power)) {
                     this.addAffectedEntity(cEntity);
                 }
-                boolean isProjectileIncendiary = projectile.hasProperty(ProjectileProperties.INCENDIARY);
-                boolean destroyBlocks = projectile.getExplosionDamage();
-
-                world.createExplosion(
-                        impactLoc,
-                        explosion_power,
-                        isProjectileIncendiary,
-                        destroyBlocks,
-                        cannonball.getProjectileEntity()
-                );
-
+                Explosion explosion = new Explosion(((CraftWorld) Objects.requireNonNull(world)).getHandle(),
+                        null, null,  new CustomExplosionDamageCalculator(), impactLoc.getX(), impactLoc.getY(), impactLoc.getZ(),
+                        explosion_power, projectile.hasProperty(ProjectileProperties.INCENDIARY),
+                        projectile.getExplosionDamage()?Explosion.BlockInteraction.DESTROY:Explosion.BlockInteraction.KEEP
+                        , ParticleTypes.EXPLOSION, ParticleTypes.EXPLOSION_EMITTER, SoundEvents.GENERIC_EXPLODE);
+                explosion.explode();
+                explosion.finalizeExplosion(true);
                 // fake the effect (fuller effect)
                 world.createExplosion(impactLoc, 0, false, false, cannonball.getProjectileEntity());
                 this.sendExplosionToPlayers(projectile, impactLoc, projectile.getSoundImpact());
@@ -936,6 +1074,9 @@ public class CreateExplosion {
      * @param cannonball the flying projectile
      */
     private boolean deflectProjectile(FlyingProjectile cannonball) {
+        // todo deflect projectiles
+        // if (!cannonball.getProjectile().isSpawnEnabled())
+        // return;
 
         Random r = new Random();
         Location impactLoc = cannonball.getImpactLocation();

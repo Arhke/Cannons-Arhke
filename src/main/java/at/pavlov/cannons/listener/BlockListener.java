@@ -333,7 +333,6 @@ public class BlockListener implements Listener
                     }
                 }
 
-
                 if (i++ > 1200){
                     this.cancel();
                 }
