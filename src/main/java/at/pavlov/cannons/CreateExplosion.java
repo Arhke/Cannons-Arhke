@@ -266,34 +266,26 @@ public class CreateExplosion {
                             + cannonball.getProjectile().getProjectileId() + " occurred: " + e);
                 }
             }
-            // ThrownPotion
-            if (entity instanceof SplashPotion) {
-                SplashPotion pentity = (SplashPotion) entity;
-                try {
-                    ItemStack potion = new ItemStack(Material.SPLASH_POTION);
-                    PotionMeta meta = (PotionMeta) potion.getItemMeta();
+
+            if (entity instanceof ThrownPotion potion) {
+
+                if (potion.getItem().isSimilar(new ItemStack(Material.SPLASH_POTION))) {
+                    ItemStack potStack = new ItemStack(Material.SPLASH_POTION);
+                    PotionMeta meta = (PotionMeta) potStack.getItemMeta();
                     meta.setBasePotionData(CannonsUtil.parsePotionData(
                             entityHolder.getData().get(EntityDataType.POTION_EFFECT), meta.getBasePotionData()));
-                    potion.setItemMeta(meta);
-                    pentity.setItem(potion);
-                } catch (Exception e) {
-                    this.plugin.logSevere("error while converting entity data for "
-                            + cannonball.getProjectile().getProjectileId() + " occurred: " + e);
-                }
-            }
-            // LingeringPotion
-            if (entity instanceof LingeringPotion) {
-                LingeringPotion pentity = (LingeringPotion) entity;
-                try {
-                    ItemStack potion = new ItemStack(Material.LINGERING_POTION);
-                    PotionMeta meta = (PotionMeta) potion.getItemMeta();
+                    potStack.setItemMeta(meta);
+                    potion.setItem(potStack);
+                } else if (potion.getItem().isSimilar(new ItemStack(Material.LINGERING_POTION))) {
+                    ItemStack potStack = new ItemStack(Material.LINGERING_POTION);
+                    PotionMeta meta = (PotionMeta) potStack.getItemMeta();
                     meta.setBasePotionData(CannonsUtil.parsePotionData(
                             entityHolder.getData().get(EntityDataType.POTION_EFFECT), meta.getBasePotionData()));
-                    potion.setItemMeta(meta);
-                    pentity.setItem(potion);
-                } catch (Exception e) {
-                    this.plugin.logSevere("error while converting entity data for "
-                            + cannonball.getProjectile().getProjectileId() + " occurred: " + e);
+                    potStack.setItemMeta(meta);
+                    potion.setItem(potStack);
+                } else {
+                    this.plugin.logSevere("An error occurred while determining type of ThrownPotion for "
+                            + cannonball.getProjectile().getProjectileId() + ".");
                 }
             }
         }
