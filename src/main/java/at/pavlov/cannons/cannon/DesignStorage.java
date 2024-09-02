@@ -416,9 +416,9 @@ public class DesignStorage
 		BlockFace cannonDirection = cannonDesign.getDefaultHorizontalFacing();
 
 		// read out blocks
-		int width = cc.getDimensions().getBlockX();
-		int height = cc.getDimensions().getBlockY();
-		int length = cc.getDimensions().getBlockZ();
+		int width = cc.getDimensions().x();
+		int height = cc.getDimensions().y();
+		int length = cc.getDimensions().z();
 
 		cc.setOrigin(BlockVector3.ZERO);
 
@@ -437,7 +437,7 @@ public class DesignStorage
 
 					// ignore if block is AIR or the IgnoreBlock type
 					if (!block.getMaterial().equals(Material.AIR) && !block.matches(blockIgnore)) {
-						schematiclist.add(new SimpleBlock(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), block));
+						schematiclist.add(new SimpleBlock(pt.x(), pt.y(), pt.z(), block));
 					}
 				}
 			}

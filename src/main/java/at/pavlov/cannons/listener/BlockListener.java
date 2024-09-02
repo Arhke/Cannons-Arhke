@@ -45,7 +45,7 @@ public class BlockListener implements Listener
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
         if (plugin.getMyConfig().isRelayExplosionEvent()) {
-            EntityExplodeEvent explodeEvent = new EntityExplodeEvent(null, event.getBlock().getLocation(), event.blockList(), event.getYield());
+            EntityExplodeEvent explodeEvent = new EntityExplodeEvent(null, event.getBlock().getLocation(), event.blockList(), event.getYield(), ExplosionResult.DESTROY);
             Bukkit.getServer().getPluginManager().callEvent(explodeEvent);
             event.setCancelled(explodeEvent.isCancelled());
         }
@@ -398,8 +398,7 @@ public class BlockListener implements Listener
         if (pen > 0) {
             //penned
             if(event.getProjectile().getPenetrationDamage()) {
-                EntityExplodeEvent bee = new EntityExplodeEvent(event.getProjectileEntity(), event.getImpactLocation(), blockList,
-                        0);
+                EntityExplodeEvent bee = new EntityExplodeEvent(event.getProjectileEntity(), event.getImpactLocation(), blockList, 0, ExplosionResult.DESTROY);
                 Bukkit.getPluginManager().callEvent(bee);
                 if(!bee.isCancelled())
                     blockList.forEach(Block::breakNaturally);

@@ -1199,7 +1199,7 @@ public class CreateExplosion {
         }
 
         // apply to rocket
-        final Firework fw = (Firework) world.spawnEntity(projectile_entity.getLocation(), EntityType.FIREWORK);
+        final Firework fw = (Firework) world.spawnEntity(projectile_entity.getLocation(), EntityType.FIREWORK_ROCKET);
         FireworkMeta meta = fw.getFireworkMeta();
 
         meta.addEffect(fwb.build());
