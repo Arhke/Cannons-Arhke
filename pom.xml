@@ -17,68 +17,19 @@
         <resources>
             <resource>
                 <targetPath>.</targetPath>
-                <filtering>true</filtering>
+<!--                <filtering>false</filtering>-->
                 <directory>${basedir}/src/main/resources/</directory>
 
-                <includes>
-                    <include>designs/*</include>
-                    <include>localization/*</include>
-                    <include>projectiles/*</include>
-                    <include>*.yml</include>
-                </includes>
+<!--                <includes>-->
+<!--                    <include>designs/*</include>-->
+<!--                    <include>localization/*</include>-->
+<!--                    <include>projectiles/*</include>-->
+<!--                    <include>*.yml</include>-->
+<!--                </includes>-->
             </resource>
         </resources>
         <plugins>
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-compiler-plugin</artifactId>-->
-            <!--                <version>2.5.1</version>-->
-            <!--                <configuration>-->
-            <!--                    <source>8</source>-->
-            <!--                    <target>8</target>-->
-            <!--                </configuration>-->
-            <!--            </plugin>-->
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-shade-plugin</artifactId>-->
-            <!--                <version>3.3.3-SNAPSHOT</version>-->
-            <!--                <executions>-->
-            <!--                    <execution>-->
-
-            <!--                        <phase>package</phase>-->
-            <!--                        <goals>-->
-            <!--                            <goal>shade</goal>-->
-            <!--                        </goals>-->
-            <!--                        <configuration>-->
-            <!--                            <finalName>${project.artifactId}-${project.version}</finalName>-->
-            <!--                            <outputDirectory>target</outputDirectory>-->
-            <!--                            <createDependencyReducedPom>false</createDependencyReducedPom>-->
-            <!--                            <transformers>-->
-            <!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"><mainClass>package.Main</mainClass></transformer>-->
-            <!--                            </transformers>-->
-            <!--                            <artifactSet>-->
-            <!--                                <includes>-->
-            <!--                                    <include>com.Arhke.ArhkeLib:*</include>-->
-            <!--                                </includes>-->
-            <!--                            </artifactSet>-->
-            <!--                            <filters>-->
-            <!--                                <filter>-->
-            <!--                                    <artifact>*:*</artifact>-->
-            <!--                                    <excludes>-->
-            <!--                                        <exclude>module-info.class</exclude>-->
-            <!--                                        <exclude>META-INF/*.SF</exclude>-->
-            <!--                                        <exclude>META-INF/*.MF</exclude>-->
-            <!--                                        <exclude>META-INF/*.DSA</exclude>-->
-            <!--                                        <exclude>META-INF/*.RSA</exclude>-->
-            <!--                                        <exclude>META-INF/**</exclude>-->
-            <!--                                    </excludes>-->
-            <!--                                </filter>-->
-            <!--                            </filters>-->
-            <!--                        </configuration>-->
-            <!--                    </execution>-->
-            <!--                </executions>-->
-            <!--            </plugin>-->
-                        <plugin>
+            <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-shade-plugin</artifactId>
                             <version>3.2.4</version>
@@ -90,7 +41,7 @@
                                         <goal>shade</goal>
                                     </goals>
                                     <configuration>
-                                        <finalName>${artifactId}-${version}</finalName>
+                                        <finalName>${project.artifactId}-${project.version}</finalName>
                                         <createDependencyReducedPom>false</createDependencyReducedPom>
                                         <transformers>
                                             <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"><mainClass>package.Main</mainClass></transformer>
@@ -112,6 +63,7 @@
                                                     <exclude>META-INF/**</exclude>
                                                 </excludes>
                                             </filter>
+
                                         </filters>
                                     </configuration>
                                 </execution>
@@ -120,6 +72,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
                     <source>8</source>
                     <target>8</target>
@@ -169,16 +122,10 @@
         </repository>
     </repositories>
     <dependencies>
-        <!--        <dependency>-->
-        <!--            <groupId>at.pavlov</groupId>-->
-        <!--            <artifactId>Cannons</artifactId>-->
-        <!--            <version>2.5.2</version>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.20.6-R0.1-SNAPSHOT</version>
+            <version>1.21.1-R0.1-SNAPSHOT</version>
             <classifier>remapped-mojang</classifier>
             <scope>provided</scope>
         </dependency>

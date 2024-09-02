@@ -1,8 +1,21 @@
 package at.pavlov.cannons;
 
-import java.util.*;
-
+import at.pavlov.cannons.Enum.EntityDataType;
+import at.pavlov.cannons.Enum.FakeBlockType;
+import at.pavlov.cannons.Enum.ProjectileCause;
+import at.pavlov.cannons.config.Config;
+import at.pavlov.cannons.container.DeathCause;
+import at.pavlov.cannons.container.SoundHolder;
+import at.pavlov.cannons.container.SpawnEntityHolder;
+import at.pavlov.cannons.container.SpawnMaterialHolder;
+import at.pavlov.cannons.event.CannonsEntityDeathEvent;
+import at.pavlov.cannons.event.ProjectileImpactEvent;
+import at.pavlov.cannons.projectile.FlyingProjectile;
+import at.pavlov.cannons.projectile.Projectile;
+import at.pavlov.cannons.projectile.ProjectileProperties;
+import at.pavlov.cannons.utils.CannonsUtil;
 import at.pavlov.cannons.utils.CustomExplosionDamageCalculator;
+import at.pavlov.cannons.utils.DelayedTask;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.Explosion;
@@ -10,35 +23,17 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_20_R4.CraftWorld;
+import org.bukkit.craftbukkit.v1_21_R1.CraftWorld;
 import org.bukkit.entity.*;
-import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
-import at.pavlov.cannons.Enum.EntityDataType;
-import at.pavlov.cannons.Enum.FakeBlockType;
-import at.pavlov.cannons.Enum.ProjectileCause;
-import at.pavlov.cannons.config.Config;
-import at.pavlov.cannons.container.DeathCause;
-import at.pavlov.cannons.container.ItemHolder;
-import at.pavlov.cannons.container.SoundHolder;
-import at.pavlov.cannons.container.SpawnEntityHolder;
-import at.pavlov.cannons.container.SpawnMaterialHolder;
-import at.pavlov.cannons.event.CannonsEntityDeathEvent;
-import at.pavlov.cannons.event.ProjectileImpactEvent;
-import at.pavlov.cannons.event.ProjectilePiercingEvent;
-import at.pavlov.cannons.projectile.FlyingProjectile;
-import at.pavlov.cannons.projectile.Projectile;
-import at.pavlov.cannons.projectile.ProjectileProperties;
-import at.pavlov.cannons.utils.CannonsUtil;
-import at.pavlov.cannons.utils.DelayedTask;
+import java.util.*;
 
 import static at.pavlov.cannons.listener.BlockListener.cannonBallHit;
 
