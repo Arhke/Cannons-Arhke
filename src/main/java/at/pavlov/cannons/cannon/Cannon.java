@@ -106,7 +106,7 @@ public class Cannon
 
     // cannon operator (can be null), distance to the cannon matters
     private UUID cannonOperator;
-    // linked cannon operator is controling cannon via a master cannon.
+    // linked cannon operator is controlling cannon via a master cannon.
     private boolean masterCannon;
 
     //observer will see the impact of the target predictor
@@ -842,7 +842,7 @@ public class Cannon
         if (breakBlocks)
             breakAllCannonBlocks();
 
-        //loaded cannon can exploded (80% chance)
+        //loaded cannon can explode (80% chance)
         if (canExplode && design.getExplodingLoadedCannons() > 0 && getLoadedGunpowder() > 0 && Math.random() > 0.2)
         {
             double power = 1.0*getLoadedGunpowder()/design.getMaxLoadableGunpowderNormal()*design.getExplodingLoadedCannons();
@@ -856,17 +856,12 @@ public class Cannon
             dropCharge();
 
         // return message
-        switch (cause)
-        {
-            case Overheating:
-                return MessageEnum.HeatManagementOverheated;
-            case Other:
-                return null;
-            case Dismantling:
-                return MessageEnum.CannonDismantled;
-            default:
-                return MessageEnum.CannonDestroyed;
-        }
+        return switch (cause) {
+            case Overheating -> MessageEnum.HeatManagementOverheated;
+            case Other -> null;
+            case Dismantling -> MessageEnum.CannonDismantled;
+            default -> MessageEnum.CannonDestroyed;
+        };
     }
 
     /**
