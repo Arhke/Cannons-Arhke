@@ -497,7 +497,7 @@ public class Aiming {
     		if (System.currentTimeMillis() >= cannon.getLastAimed() + cannon.getCannonDesign().getAngleUpdateSpeed())
     		{
     			boolean playerInRange = distanceCheck(player, cannon);
-    			// reset diasble aiming mode timer if player is close to the cannon
+    			// reset disable aiming mode timer if player is close to the cannon
 				if(playerInRange)
 					cannon.setTimestampAimingMode(System.currentTimeMillis());
 

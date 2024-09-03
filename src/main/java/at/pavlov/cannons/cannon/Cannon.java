@@ -1790,38 +1790,30 @@ public class Cannon
         return world;
     }
 
-    public void setWorld(UUID world)
-    {
+    public void setWorld(UUID world) {
         this.world = world;
         this.hasUpdated();
     }
 
-    public long getLastFired()
-    {
+    public long getLastFired() {
         return lastFired;
     }
 
-    public void setLastFired(long lastFired)
-    {
+    public void setLastFired(long lastFired) {
         this.lastFired = lastFired;
         this.hasUpdated();
     }
 
-    public int getLoadedGunpowder()
-    {
-        if (loadedGunpowder<design.getMaxLoadableGunpowderNormal() && !design.isGunpowderNeeded())
-            design.getMaxLoadableGunpowderNormal();
-
+    public int getLoadedGunpowder() {
         return loadedGunpowder;
     }
 
-    public void setLoadedGunpowder(int loadedGunpowder)
-    {
+    public void setLoadedGunpowder(int loadedGunpowder) {
         this.loadedGunpowder = loadedGunpowder;
         this.hasUpdated();
     }
 
-    public double getHorizontalAngle(){
+    public double getHorizontalAngle() {
         return horizontalAngle;
     }
 
