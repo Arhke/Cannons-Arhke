@@ -24,7 +24,7 @@ import java.util.List;
 public class FakeBlockHandler {
     private final Cannons plugin;
 
-    private ArrayList<FakeBlockEntry> list = new ArrayList<FakeBlockEntry>();
+    private final ArrayList<FakeBlockEntry> list = new ArrayList<FakeBlockEntry>();
 
     private long lastAiming;
     private long lastImpactPredictor;
@@ -225,10 +225,8 @@ public class FakeBlockHandler {
             return false;
 
         double dist = player.getLocation().distance(loc);
-        if (dist > plugin.getMyConfig().getImitatedBlockMinimumDistance() &&
-            dist < plugin.getMyConfig().getImitatedBlockMaximumDistance())
-            return true;
-        return false;
+        return dist > plugin.getMyConfig().getImitatedBlockMinimumDistance() &&
+                dist < plugin.getMyConfig().getImitatedBlockMaximumDistance();
     }
 
     /**
@@ -243,9 +241,7 @@ public class FakeBlockHandler {
             return false;
 
         double dist = player.getLocation().distance(loc);
-        if (dist < plugin.getMyConfig().getImitatedBlockMaximumDistance())
-            return true;
-        return false;
+        return dist < plugin.getMyConfig().getImitatedBlockMaximumDistance();
     }
 
 }

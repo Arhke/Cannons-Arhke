@@ -33,7 +33,24 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import at.pavlov.cannons.Enum.EntityDataType;
+import at.pavlov.cannons.Enum.FakeBlockType;
+import at.pavlov.cannons.Enum.ProjectileCause;
+import at.pavlov.cannons.config.Config;
+import at.pavlov.cannons.container.DeathCause;
+import at.pavlov.cannons.container.SoundHolder;
+import at.pavlov.cannons.container.SpawnEntityHolder;
+import at.pavlov.cannons.container.SpawnMaterialHolder;
+import at.pavlov.cannons.event.CannonsEntityDeathEvent;
+import at.pavlov.cannons.event.ProjectileImpactEvent;
+import at.pavlov.cannons.projectile.FlyingProjectile;
+import at.pavlov.cannons.projectile.Projectile;
+import at.pavlov.cannons.projectile.ProjectileProperties;
+import at.pavlov.cannons.utils.CannonsUtil;
+import at.pavlov.cannons.utils.DelayedTask;
 import java.util.*;
+
+import java.util.HashSet;
 
 import static at.pavlov.cannons.listener.BlockListener.cannonBallHit;
 
@@ -57,18 +74,18 @@ public class CreateExplosion {
     }
 
     /**
-     * Breaks a obsidian/water/lava blocks if the projectile has superbreaker
+     * Breaks an obsidian/water/lava blocks if the projectile has superbreaker
      *
      * @param block
      * @param blocklist
-     * @param superBreaker
+     * @param superBreaker Bool defining if the projectile has the superbreaker attribute.
      * @param blockDamage  break blocks if true
      * @return true if the block can be destroyed
      */
     private boolean breakBlock(Block block, List<Block> blocklist, Boolean superBreaker, Boolean blockDamage) {
         BlockData destroyedBlock = block.getBlockData();
 
-        // air is not an block to break, so ignore it
+        // air is not a block to break, so ignore it
         if (!destroyedBlock.getMaterial().equals(Material.AIR)) {
             // if it is unbreakable, ignore it
             for (BlockData unbreakableBlock : this.config.getUnbreakableBlocks()) {
@@ -222,7 +239,7 @@ public class CreateExplosion {
     }
 
     /**
-     * places a entity on the given location and pushes it away from the impact
+     * places an entity on the given location and pushes it away from the impact
      *
      * @param cannonball     the involved projectile
      * @param loc            location of the spawn
@@ -248,7 +265,7 @@ public class CreateExplosion {
             this.plugin.logDebug("Spawned entity: " + entityHolder.getType().toString() + " at impact");
             // get distance form the center + 1 to avoid division by zero
             double dist = impactLoc.distance(loc) + 1;
-            // calculate veloctiy away from the impact (speed in y makes problems and entity
+            // calculate velocity away from the impact (speed in y makes problems and entity
             // sinks in ground)
             Vector vect = loc.clone().subtract(impactLoc).toVector().normalize().multiply(entityVelocity / dist);// .multiply(new
             // Vector(1.0,0.0,1.0));
@@ -257,8 +274,7 @@ public class CreateExplosion {
 
             // add some specific data values
             // TNT
-            if (entity instanceof TNTPrimed) {
-                TNTPrimed tnt = (TNTPrimed) entity;
+            if (entity instanceof TNTPrimed tnt) {
                 try {
                     int fusetime = CannonsUtil.parseInt(entityHolder.getData().get(EntityDataType.FUSE_TIME),
                             tnt.getFuseTicks());
@@ -271,8 +287,7 @@ public class CreateExplosion {
                 }
             }
             // AreaEffectCloud
-            if (entity instanceof AreaEffectCloud) {
-                AreaEffectCloud cloud = (AreaEffectCloud) entity;
+            if (entity instanceof AreaEffectCloud cloud) {
                 try {
                     // PARTICLE ("Particle"),
                     // EFFECTS ("Effects"),
@@ -310,8 +325,7 @@ public class CreateExplosion {
                 }
             }
             // SpectralArrow
-            if (entity instanceof SpectralArrow) {
-                SpectralArrow arrow = (SpectralArrow) entity;
+            if (entity instanceof SpectralArrow arrow) {
                 try {
                     arrow.setGlowingTicks(CannonsUtil.parseInt(entityHolder.getData().get(EntityDataType.DURATION),
                             arrow.getGlowingTicks()));
@@ -321,8 +335,7 @@ public class CreateExplosion {
                 }
             }
             // TippedArrow
-            if (entity instanceof Arrow) {
-                Arrow arrow = (Arrow) entity;
+            if (entity instanceof Arrow arrow) {
                 try {
                     arrow.setBasePotionData(CannonsUtil.parsePotionData(
                             entityHolder.getData().get(EntityDataType.POTION_EFFECT), arrow.getBasePotionData()));
@@ -332,8 +345,7 @@ public class CreateExplosion {
                 }
             }
             // LivingEntity
-            if (entity instanceof LivingEntity) {
-                LivingEntity living = (LivingEntity) entity;
+            if (entity instanceof LivingEntity living) {
                 try {
                     EntityEquipment equipment = living.getEquipment();
                     if (equipment != null) {
@@ -359,34 +371,26 @@ public class CreateExplosion {
                             + cannonball.getProjectile().getProjectileId() + " occurred: " + e);
                 }
             }
-            // ThrownPotion
-            if (entity instanceof SplashPotion) {
-                SplashPotion pentity = (SplashPotion) entity;
-                try {
-                    ItemStack potion = new ItemStack(Material.SPLASH_POTION);
-                    PotionMeta meta = (PotionMeta) potion.getItemMeta();
+
+            if (entity instanceof ThrownPotion potion) {
+
+                if (potion.getItem().isSimilar(new ItemStack(Material.SPLASH_POTION))) {
+                    ItemStack potStack = new ItemStack(Material.SPLASH_POTION);
+                    PotionMeta meta = (PotionMeta) potStack.getItemMeta();
                     meta.setBasePotionData(CannonsUtil.parsePotionData(
                             entityHolder.getData().get(EntityDataType.POTION_EFFECT), meta.getBasePotionData()));
-                    potion.setItemMeta(meta);
-                    pentity.setItem(potion);
-                } catch (Exception e) {
-                    this.plugin.logSevere("error while converting entity data for "
-                            + cannonball.getProjectile().getProjectileId() + " occurred: " + e);
-                }
-            }
-            // LingeringPotion
-            if (entity instanceof LingeringPotion) {
-                LingeringPotion pentity = (LingeringPotion) entity;
-                try {
-                    ItemStack potion = new ItemStack(Material.LINGERING_POTION);
-                    PotionMeta meta = (PotionMeta) potion.getItemMeta();
+                    potStack.setItemMeta(meta);
+                    potion.setItem(potStack);
+                } else if (potion.getItem().isSimilar(new ItemStack(Material.LINGERING_POTION))) {
+                    ItemStack potStack = new ItemStack(Material.LINGERING_POTION);
+                    PotionMeta meta = (PotionMeta) potStack.getItemMeta();
                     meta.setBasePotionData(CannonsUtil.parsePotionData(
                             entityHolder.getData().get(EntityDataType.POTION_EFFECT), meta.getBasePotionData()));
-                    potion.setItemMeta(meta);
-                    pentity.setItem(potion);
-                } catch (Exception e) {
-                    this.plugin.logSevere("error while converting entity data for "
-                            + cannonball.getProjectile().getProjectileId() + " occurred: " + e);
+                    potStack.setItemMeta(meta);
+                    potion.setItem(potStack);
+                } else {
+                    this.plugin.logSevere("An error occurred while determining type of ThrownPotion for "
+                            + cannonball.getProjectile().getProjectileId() + ".");
                 }
             }
         }
@@ -420,14 +424,14 @@ public class CreateExplosion {
      * @return new location on the ground or in the air if nothing was found
      */
     private Location moveToGround(Location loc, double max_iterations) {
-        Location tloc = loc.clone();
-        tloc = tloc.subtract(0, 1, 0);
+        Location newLocation = loc.clone();
+        newLocation = newLocation.subtract(0, 1, 0);
         for (int i = 0; i < max_iterations; i++) {
-            tloc = tloc.subtract(0, 1, 0);
-            if (tloc.getBlock().getType() != Material.AIR)
-                return tloc.add(0, 1, 0);
+            newLocation = newLocation.subtract(0, 1, 0);
+            if (newLocation.getBlock().getType() != Material.AIR)
+                return newLocation.add(0, 1, 0);
         }
-        return tloc;
+        return newLocation;
     }
 
     /**
@@ -462,7 +466,7 @@ public class CreateExplosion {
                 // get new position
                 placeLoc = CannonsUtil.randomPointInSphere(impactLoc, spread);
 
-                // check a entity can spawn on this block if it is a living entity
+                // check an entity can spawn on this block if it is a living entity
                 if (this.canPlaceEntity(placeLoc.getBlock()) || !spawn.getType().isAlive()) {
                     placedEntities++;
                     // place the entity
@@ -477,7 +481,7 @@ public class CreateExplosion {
     }
 
     /**
-     * spawns a falling block with the id and data that is slinged away from the
+     * spawns a falling block with the id and data that is slung away from the
      * impact
      *
      * @param impactLoc      location of the impact
@@ -499,7 +503,7 @@ public class CreateExplosion {
             entity.setVelocity(vect);
             // set some other properties
             entity.setDropItem(false);
-            this.plugin.logDebug("Spawned block: " + item.toString() + " at impact");
+            this.plugin.logDebug("Spawned block: " + item + " at impact");
         } else {
             this.plugin.logSevere(
                     "Item id:" + item.toString() + " can't be spawned as falling block.");
@@ -537,7 +541,7 @@ public class CreateExplosion {
                 // get location to place block
                 placeLoc = CannonsUtil.randomPointInSphere(impactLoc, spread);
 
-                // check a entity can spawn on this block
+                // check that an entity can spawn on this block
                 if (this.canPlaceBlock(placeLoc.getBlock())) {
                     placedBlocks++;
                     // place the block
@@ -552,7 +556,7 @@ public class CreateExplosion {
     }
 
     /**
-     * returns true if an falling block can be place on this block
+     * returns true if a falling block can be place on this block
      *
      * @param block location to spawn the entity
      * @return true if the block is empty or liquid
@@ -600,17 +604,16 @@ public class CreateExplosion {
     /**
      * Gives a player next to an explosion an entity effect
      *
-     * @param impactLoc
-     * @param next
-     * @param cannonball
+     * @param impactLocation The Location of impact.
+     * @param entity An {@link Entity}.
+     * @param cannonball A {@link Projectile}.
      */
-    private void applyPotionEffect(Location impactLoc, Entity next, FlyingProjectile cannonball) {
+    private void applyPotionEffect(Location impactLocation, Entity entity, FlyingProjectile cannonball) {
         Projectile projectile = cannonball.getProjectile();
 
-        if (next instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity) next;
+        if (entity instanceof LivingEntity livingEntity) {
 
-            double dist = impactLoc.distance(living.getEyeLocation());
+            double dist = impactLocation.distance(livingEntity.getEyeLocation());
             // if the entity is too far away, return
             if (dist > projectile.getPotionRange())
                 return;
@@ -619,7 +622,7 @@ public class CreateExplosion {
             double duration = projectile.getPotionDuration() * 20;
 
             // check line of sight and reduce damage if the way is blocked
-            int blockingBlocks = this.checkLineOfSight(impactLoc, living.getEyeLocation());
+            int blockingBlocks = this.checkLineOfSight(impactLocation, livingEntity.getEyeLocation());
             duration = duration / (blockingBlocks + 1);
 
             // randomizer
@@ -633,7 +636,7 @@ public class CreateExplosion {
 
                 for (PotionEffectType potionEffect : projectile.getPotionsEffectList()) {
                     // apply to entity
-                    potionEffect.createEffect(intDuration, projectile.getPotionAmplifier()).apply(living);
+                    potionEffect.createEffect(intDuration, projectile.getPotionAmplifier()).apply(livingEntity);
                 }
             }
         }
@@ -651,8 +654,7 @@ public class CreateExplosion {
     private double getPlayerDamage(Location impactLoc, Entity next, FlyingProjectile cannonball) {
         Projectile projectile = cannonball.getProjectile();
 
-        if (next instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity) next;
+        if (next instanceof LivingEntity living) {
 
             double dist = impactLoc.distance((living).getEyeLocation());
             // if the entity is too far away, return
@@ -673,14 +675,13 @@ public class CreateExplosion {
 
             // calculate the armor reduction
             double reduction = 1.0;
-            if (living instanceof HumanEntity) {
-                HumanEntity human = (HumanEntity) living;
+            if (living instanceof HumanEntity human) {
                 double armorPiercing = Math.max(projectile.getPenetration(), 0);
                 reduction *= (1 - CannonsUtil.getArmorDamageReduced(human) / (armorPiercing + 1))
                         * (1 - CannonsUtil.getBlastProtection(human));
             }
 
-            this.plugin.logDebug("PlayerDamage " + living.getType() + ":" + String.format("%.2f", damage) + ",reduct:"
+            this.plugin.logDebug("PlayerDamage " + living.getType() + ":" + String.format("%.2f", damage) + ", reduct:"
                     + String.format("%.2f", reduction) + ",dist:" + String.format("%.2f", dist));
 
             damage = damage * reduction;
@@ -704,8 +705,7 @@ public class CreateExplosion {
         // if (cannonball.getProjectileEntity()==null)
         // return 0.0;
 
-        if (target instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity) target;
+        if (target instanceof LivingEntity living) {
 
             // given damage is in half hearts
             double damage = projectile.getDirectHitDamage();
@@ -717,8 +717,7 @@ public class CreateExplosion {
 
             // calculate the armor reduction
             double reduction = 1.0;
-            if (living instanceof HumanEntity) {
-                HumanEntity human = (HumanEntity) living;
+            if (living instanceof HumanEntity human) {
                 double armorPiercing = Math.max(projectile.getPenetration(), 0);
                 armorPiercing = 0; // disable armor Piercing
                 reduction *= (1 - CannonsUtil.getArmorDamageReduced(human) / (armorPiercing + 1))
@@ -853,7 +852,7 @@ public class CreateExplosion {
                 explosion.explode();
                 explosion.finalizeExplosion(true);
                 // fake the effect (fuller effect)
-                world.createExplosion(impactLoc.getX(), impactLoc.getY(), impactLoc.getZ(), 0, false, false, cannonball.getProjectileEntity());
+                world.createExplosion(impactLoc, 0, false, false, cannonball.getProjectileEntity());
                 this.sendExplosionToPlayers(projectile, impactLoc, projectile.getSoundImpact());
             }
         }
@@ -1030,8 +1029,7 @@ public class CreateExplosion {
             double damage = entry.getValue();
             Entity entity = entry.getKey();
 
-            if (damage >= 1 && entity instanceof LivingEntity) {
-                LivingEntity living = (LivingEntity) entity;
+            if (damage >= 1 && entity instanceof LivingEntity living) {
                 this.plugin.logDebug(
                         "apply damage to entity " + living.getType() + " by " + String.format("%.2f", damage));
                 double health = living.getHealth();
@@ -1076,14 +1074,12 @@ public class CreateExplosion {
         if (impactBlock == null)
             return false;
 
-        Vector vectdeflect = cannonball.getVelocity().clone().multiply(.5);
-        // vectdeflect.add(new
-        // Vector(vectdeflect.length()*r.nextGaussian()*0.2,vectdeflect.length()*r.nextGaussian()*0.2,vectdeflect.length()*r.nextGaussian()*0.2));
+        Vector vectorDeflection = cannonball.getVelocity().clone().multiply(.5);
 
         this.plugin.logDebug("Deflection calculating");
 
         // ignore too slow cannonballs
-        if (vectdeflect.length() < 0.3)
+        if (vectorDeflection.length() < 0.3)
             return false;
 
         // no deflection if the projectile pierces the block
@@ -1095,7 +1091,7 @@ public class CreateExplosion {
             return false;
 
         this.plugin.logDebug("Deflection valid");
-        // spawn a new deflected cannnonball
+        // spawn a new deflected cannonball
         this.plugin.getServer().getScheduler().scheduleSyncDelayedTask(this.plugin, new DelayedTask(cannonball) {
             @Override
             public void run(Object object) {
@@ -1106,20 +1102,18 @@ public class CreateExplosion {
                 Random r = new Random();
 
                 Location impactBlock = cannonball.getImpactBlock();
-                Vector vnormal = CannonsUtil.detectImpactSurfaceNormal(cannonball.getImpactLocation().toVector(),
+                Vector vectorNormal = CannonsUtil.detectImpactSurfaceNormal(cannonball.getImpactLocation().toVector(),
                         cannonball.getVelocity().clone());
 
-                Vector vectdeflect = cannonball.getVelocity().multiply(.5);
+                Vector vectorDeflect = cannonball.getVelocity().multiply(.5);
                 Location impactLoc = cannonball.getImpactLocation()
                         .subtract(cannonball.getVelocity().normalize().multiply(0.3));
-                // vectdeflect.add(new
-                // Vector(vectdeflect.length()*r.nextGaussian()*0.2,vectdeflect.length()*r.nextGaussian()*0.2,vectdeflect.length()*r.nextGaussian()*0.2));
-                vectdeflect.setY(-vectdeflect.getY());
-                CreateExplosion.this.plugin.logDebug("Deflect projectile: " + vectdeflect);
+                vectorDeflect.setY(-vectorDeflect.getY());
+                CreateExplosion.this.plugin.logDebug("Deflect projectile: " + vectorDeflect);
 
                 CreateExplosion.this.plugin.getProjectileManager().spawnProjectile(projectile,
                         cannonball.getShooterUID(), cannonball.getSource(), cannonball.getPlayerlocation(),
-                        impactLoc.clone(), vectdeflect, cannonball.getCannonUID(), ProjectileCause.DeflectedProjectile);
+                        impactLoc.clone(), vectorDeflect, cannonball.getCannonUID(), ProjectileCause.DeflectedProjectile);
             }
         }, 1L);
 
@@ -1194,7 +1188,7 @@ public class CreateExplosion {
         }
 
         // apply to rocket
-        final Firework fw = (Firework) world.spawnEntity(projectile_entity.getLocation(), EntityType.FIREWORK);
+        final Firework fw = (Firework) world.spawnEntity(projectile_entity.getLocation(), EntityType.FIREWORK_ROCKET);
         FireworkMeta meta = fw.getFireworkMeta();
 
         meta.addEffect(fwb.build());

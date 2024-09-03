@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import at.pavlov.cannons.container.SoundHolder;
-import at.pavlov.cannons.projectile.ProjectileStorage;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -37,7 +36,7 @@ public class CannonDesign
     private boolean projectileConsumption;
 	private boolean ammoInfiniteForPlayer;
     private boolean ammoInfiniteForRedstone;
-    private boolean autoreloadRedstone;
+    private boolean autoReloadRedstone;
 	private boolean removeChargeAfterFiring;
 	private boolean autoloadChargeWhenLoadingProjectile;
 	private boolean preloaded;
@@ -187,14 +186,13 @@ public class CannonDesign
     private List<BlockData> schematicBlockTypeProtected;				//list of blocks that are protected from explosions (e.g. buttons)
     
     //cannon design block lists for every direction (NORTH, EAST, SOUTH, WEST)
-    private HashMap<BlockFace, CannonBlocks> cannonBlockMap = new HashMap<BlockFace, CannonBlocks>();
+    private HashMap<BlockFace, CannonBlocks> cannonBlockMap = new HashMap<>();
 
 
     
     /**
-     * returns the rotation center of a cannon design
      * @param cannon
-     * @return
+     * @return the rotation center of a cannon design.
      */
     public Location getRotationCenter(Cannon cannon)
     {
@@ -210,9 +208,8 @@ public class CannonDesign
     
     
     /**
-     * returns the muzzle location
      * @param cannon
-     * @return
+     * @return the muzzle location
      */
     public Location getMuzzle(Cannon cannon)
     {
@@ -242,9 +239,8 @@ public class CannonDesign
     }
     
     /**
-     * returns a list of all cannonBlocks
      * @param cannonDirection - the direction the cannon is facing
-     * @return List of cannon blocks
+     * @return All {@link CannonBlocks}, as {@link List} of {@link SimpleBlock}
      */
     public List<SimpleBlock> getAllCannonBlocks(BlockFace cannonDirection)
     {
@@ -254,7 +250,7 @@ public class CannonDesign
     		return cannonBlocks.getAllCannonBlocks();
     	}
     	
-    	return new ArrayList<SimpleBlock>();
+    	return new ArrayList<>();
     }
 
 
@@ -266,7 +262,7 @@ public class CannonDesign
     public List<Location> getAllCannonBlocks(Cannon cannon)
     {
         CannonBlocks cannonBlocks  = cannonBlockMap.get(cannon.getCannonDirection());
-        List<Location> locList = new ArrayList<Location>();
+        List<Location> locList = new ArrayList<>();
         if (cannonBlocks != null)
         {
             for (SimpleBlock block : cannonBlocks.getAllCannonBlocks())
@@ -515,13 +511,13 @@ public class CannonDesign
 	{
 		this.ammoInfiniteForRedstone = ammoInfiniteForRedstone;
 	}
-	public boolean isAutoreloadRedstone()
+	public boolean isAutoReloadRedstone()
 	{
-		return autoreloadRedstone;
+		return autoReloadRedstone;
 	}
-	public void setAutoreloadRedstone(boolean autoreloadRedstone)
+	public void setAutoReloadRedstone(boolean autoReloadRedstone)
 	{
-		this.autoreloadRedstone = autoreloadRedstone;
+		this.autoReloadRedstone = autoReloadRedstone;
 	}
 	/**
 	 * Normal means without overloading stuff

@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 public class TargetManager {
-    private static HashMap<UUID, Target> targets = new HashMap<UUID, Target>();
+    private static final HashMap<UUID, Target> targets = new HashMap<UUID, Target>();
 
     public static void addTarget(Target target){
         targets.put(target.getUniqueId(), target);

@@ -10,13 +10,13 @@ import java.util.UUID;
 
 public class Target {
 
-    private String name;
-    private TargetType targetType;
-    private EntityType type;
-    private UUID uid;
-    private Location groundLocation;
-    private Location centerLocation;
-    private Vector velocity;
+    private final String name;
+    private final TargetType targetType;
+    private final EntityType type;
+    private final UUID uid;
+    private final Location groundLocation;
+    private final Location centerLocation;
+    private final Vector velocity;
 
     public Target(String name, TargetType targetType, EntityType type, UUID uid, Location groundLocation, Location centerLocation, Vector velocity) {
         this.name = name;

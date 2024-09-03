@@ -23,7 +23,6 @@ import org.bukkit.util.Vector;
 import at.pavlov.cannons.cannon.Cannon;
 import at.pavlov.cannons.cannon.CannonDesign;
 import at.pavlov.cannons.config.Config;
-import at.pavlov.cannons.cannon.DesignStorage;
 import at.pavlov.cannons.projectile.Projectile;
 import at.pavlov.cannons.projectile.ProjectileProperties;
 
@@ -110,7 +109,7 @@ public class FireCannon {
     public MessageEnum redstoneFiring(Cannon cannon, InteractAction action)
     {
         CannonDesign design = cannon.getCannonDesign();
-        return this.fire(cannon, null, cannon.getCannonDesign().isAutoreloadRedstone(), !design.isAmmoInfiniteForRedstone(), action);
+        return this.fire(cannon, null, cannon.getCannonDesign().isAutoReloadRedstone(), !design.isAmmoInfiniteForRedstone(), action);
     }
 
     /**
@@ -394,7 +393,7 @@ public class FireCannon {
 
         //simple particle effects for close distance
         //loc.getWorld().createExplosion(loc, 0F, false);
-        loc.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, loc, 1);
+        loc.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc, 1);
         //fake blocks effects for far distance
         if (config.isImitatedFiringEffectEnabled()) {
             int maxSoundDist = config.getImitatedSoundMaximumDistance();
@@ -452,10 +451,9 @@ public class FireCannon {
             for (Entity next : living)
             {
                 boolean harmEntity = false;
-                if (next instanceof Player)
+                if (next instanceof Player player)
                 {
 
-                    Player player = (Player) next;
                     if ( player.isOnline() && !CheckHelmet(player) && player.getGameMode() != GameMode.CREATIVE  )
                     {
                         //if player has no helmet and is not in creative and there are confusion effects - harm him
@@ -473,7 +471,7 @@ public class FireCannon {
                     LivingEntity livingEntity = (LivingEntity) next;
                     if (livingEntity.getLocation().distance(firingLoc) < 5.0)
                         livingEntity.damage(1);
-                    livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION,(int) confuseTime*20, 0));
+                    livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA,(int) confuseTime*20, 0));
 
                 }
             }

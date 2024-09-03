@@ -84,7 +84,7 @@ public class SpawnEntityHolder{
                                 // {Id:2b,Amplifier:3b,Duration:300,ShowParticles:0b}
                                 for (String arg : effect.replaceAll("[\\{\\}]","").split(",")) {
                                     // split between argument and value
-                                    String s3[] = arg.split(":");
+                                    String[] s3 = arg.split(":");
                                     if (s3.length > 1) {
                                         // check arguments type, duration, amplifier, ambient, particles, icon
                                         String val = s3[1].replaceAll("b","");

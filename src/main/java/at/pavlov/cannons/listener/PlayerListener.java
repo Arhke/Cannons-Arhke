@@ -1,8 +1,9 @@
 package at.pavlov.cannons.listener;
 
 import at.pavlov.cannons.Enum.InteractAction;
-import at.pavlov.cannons.container.DeathCause;
 import at.pavlov.cannons.projectile.FlyingProjectile;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -34,9 +35,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BlockIterator;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 public class PlayerListener implements Listener
@@ -63,18 +63,15 @@ public class PlayerListener implements Listener
     {
         UUID killedUID = event.getEntity().getUniqueId();
         if (plugin.getExplosion().wasAffectedByCannons(event.getEntity())){
-            //DeathCause cause = plugin.getExplosion().getDeathCause(killedUID);
             plugin.getExplosion().removeKilledPlayer(killedUID);
 
-            Player shooter = null;
-//            if (cause.getShooterUID() != null)
-//                shooter = Bukkit.getPlayer(cause.getShooterUID());
-//            Cannon cannon = plugin.getCannon(cause.getCannonUID());
             FlyingProjectile c = plugin.getExplosion().getCurrentCannonball();
             Cannon cannon = CannonManager.getCannon(c.getCannonUID());
-            String message = userMessages.getDeathMessage(killedUID, c.getShooterUID(), cannon, c.getProjectile());
-            if (message != null && !message.equals(" "))
-                event.setDeathMessage(message);
+            final TextComponent message = Component.text()
+                    .content(userMessages.getDeathMessage(killedUID, c.getShooterUID(), cannon, c.getProjectile()))
+                    .build();
+            if (!message.content().equals(" "))
+                event.deathMessage(message);
         }
     }
 
@@ -82,14 +79,15 @@ public class PlayerListener implements Listener
     public void PlayerMove(PlayerMoveEvent event)
     {
         // only active if the player is in aiming mode
-        Cannon cannon =  aiming.getCannonInAimingMode(event.getPlayer());
+        Cannon cannon = aiming.getCannonInAimingMode(event.getPlayer());
         if (!aiming.distanceCheck(event.getPlayer(), cannon) && (System.currentTimeMillis() - cannon.getTimestampAimingMode()) > 1000){
             userMessages.sendMessage(MessageEnum.AimingModeTooFarAway, event.getPlayer());
             MessageEnum message = aiming.disableAimingMode(event.getPlayer());
             userMessages.sendMessage(message, event.getPlayer());
         }
     }
-    /*
+
+    /**
     * remove Player from auto aiming list
     * @param event - PlayerQuitEvent
     */
@@ -168,9 +166,8 @@ public class PlayerListener implements Listener
 //        }
 
         // Place wallsign
-        if (event.getBlockPlaced().getBlockData() instanceof WallSign)
+        if (event.getBlockPlaced().getBlockData() instanceof WallSign wallSign)
         {
-            WallSign wallSign = (WallSign) event.getBlockPlaced().getBlockData();
             // check cannon
             Location loc = event.getBlock().getRelative(wallSign.getFacing().getOppositeFace()).getLocation();
             Cannon cannon = cannonManager.getCannon(loc, event.getPlayer().getUniqueId(), true);
@@ -229,11 +226,9 @@ public class PlayerListener implements Listener
         if (event.getBlock().getType() == Material.FIRE)
         {
             // check cannon
-            if (event.getBlockAgainst() != null) {
-                Location loc = event.getBlockAgainst().getLocation();
-                if (cannonManager.getCannon(loc, event.getPlayer().getUniqueId(), true) != null) {
-                    event.setCancelled(true);
-                }
+            Location loc = event.getBlockAgainst().getLocation();
+            if (cannonManager.getCannon(loc, event.getPlayer().getUniqueId(), true) != null) {
+                event.setCancelled(true);
             }
         }
     }
@@ -246,7 +241,6 @@ public class PlayerListener implements Listener
     public void RedstoneEvent(BlockRedstoneEvent event)
     {
         Block block = event.getBlock();
-        if (block == null) return;
 
         // ##########  redstone torch fire
         // off because it turn form off to on
@@ -348,27 +342,7 @@ public class PlayerListener implements Listener
     {
         Action action = event.getAction();
 
-        Block clickedBlock = null;
-        if(event.getClickedBlock() == null)
-        {
-            // no clicked block - get block player is looking at
-            Location location = event.getPlayer().getEyeLocation();
-            BlockIterator blocksToAdd = new BlockIterator(location, 0, 5);
-            Block block = null;
-            while(blocksToAdd.hasNext()) {
-                block = blocksToAdd.next();
-                if (block.getType() != Material.AIR){
-                    clickedBlock = block;
-                }
-            }
-            if (clickedBlock == null) {
-                clickedBlock = block;
-            }
-        }
-        else
-        {
-            clickedBlock = event.getClickedBlock();
-        }
+        Block clickedBlock = getClickedBlock(event);
 
         if (clickedBlock == null){
             return;
@@ -426,7 +400,7 @@ public class PlayerListener implements Listener
                 if (design.getBurnDamage() > 0)
                     player.damage(design.getBurnDamage()*2);
                 if (design.getBurnSlowing() > 0)
-                    PotionEffectType.SLOW.createEffect((int) (design.getBurnSlowing()*20.0), 0).apply(player);
+                    PotionEffectType.SLOWNESS.createEffect((int) (design.getBurnSlowing()*20.0), 0).apply(player);
 
                 BlockFace clickedFace = event.getBlockFace();
 
@@ -610,8 +584,8 @@ public class PlayerListener implements Listener
                 if (!player.isSneaking() && design.isFireAfterLoading() && cannon.isLoaded() && cannon.isProjectilePushed())
                     fireCannon.playerFiring(cannon, player, InteractAction.fireAfterLoading);
 
-                if(message!=null)
-                    return;
+                if(message!=null) {
+                }
             }
         }
         //no cannon found - maybe the player has click into the air to stop aiming
@@ -628,6 +602,31 @@ public class PlayerListener implements Listener
             CannonsUtil.teleportBack(plugin.getProjectileManager().getAttachedProjectile(event.getPlayer()));
         	aiming.aimingMode(event.getPlayer(), null, true);
         }
+    }
+
+    private static @Nullable Block getClickedBlock(PlayerInteractEvent event) {
+        Block clickedBlock = null;
+        if(event.getClickedBlock() == null)
+        {
+            // no clicked block - get block player is looking at
+            Location location = event.getPlayer().getEyeLocation();
+            BlockIterator blocksToAdd = new BlockIterator(location, 0, 5);
+            Block block = null;
+            while(blocksToAdd.hasNext()) {
+                block = blocksToAdd.next();
+                if (block.getType() != Material.AIR){
+                    clickedBlock = block;
+                }
+            }
+            if (clickedBlock == null) {
+                clickedBlock = block;
+            }
+        }
+        else
+        {
+            clickedBlock = event.getClickedBlock();
+        }
+        return clickedBlock;
     }
 
 }

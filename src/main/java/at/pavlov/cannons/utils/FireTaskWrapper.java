@@ -9,7 +9,7 @@ public class FireTaskWrapper{
 	private Cannon cannon;
     private UUID player;
     private boolean removeCharge;
-    private ProjectileCause projectileCause;
+    private final ProjectileCause projectileCause;
 
 	public FireTaskWrapper(Cannon cannon, UUID player, boolean removeCharge, ProjectileCause projectileCause)
     {

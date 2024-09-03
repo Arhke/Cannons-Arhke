@@ -5,11 +5,9 @@
     <groupId>at.pavlov</groupId>
     <artifactId>Cannons</artifactId>
     <version>2.0-SNAPSHOT</version>
-    <!--    <packaging>pom</packaging>-->
     <modelVersion>4.0.0</modelVersion>
     <properties>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
+        <project.java.language.version>21</project.java.language.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -17,65 +15,73 @@
         <resources>
             <resource>
                 <targetPath>.</targetPath>
-<!--                <filtering>false</filtering>-->
+                <filtering>true</filtering>
                 <directory>${basedir}/src/main/resources/</directory>
-
-<!--                <includes>-->
-<!--                    <include>designs/*</include>-->
-<!--                    <include>localization/*</include>-->
-<!--                    <include>projectiles/*</include>-->
-<!--                    <include>*.yml</include>-->
-<!--                </includes>-->
+                <includes>
+                    <include>designs/*</include>
+                    <include>localization/*</include>
+                    <include>projectiles/*</include>
+                    <include>*.yml</include>
+                </includes>
             </resource>
         </resources>
         <plugins>
             <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-shade-plugin</artifactId>
-                            <version>3.2.4</version>
-                            <executions>
-                                <execution>
-
-                                    <phase>package</phase>
-                                    <goals>
-                                        <goal>shade</goal>
-                                    </goals>
-                                    <configuration>
-                                        <finalName>${project.artifactId}-${project.version}</finalName>
-                                        <createDependencyReducedPom>false</createDependencyReducedPom>
-                                        <transformers>
-                                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"><mainClass>package.Main</mainClass></transformer>
-                                        </transformers>
-                                        <artifactSet>
-                                            <includes>
-                                                <include>org.ejml:*</include>
-                                            </includes>
-                                        </artifactSet>
-                                        <filters>
-                                            <filter>
-                                                <artifact>*:*</artifact>
-                                                <excludes>
-                                                    <exclude>module-info.class</exclude>
-                                                    <exclude>META-INF/*.SF</exclude>
-                                                    <exclude>META-INF/*.MF</exclude>
-                                                    <exclude>META-INF/*.DSA</exclude>
-                                                    <exclude>META-INF/*.RSA</exclude>
-                                                    <exclude>META-INF/**</exclude>
-                                                </excludes>
-                                            </filter>
-
-                                        </filters>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                        </plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"><mainClass>package.Main</mainClass></transformer>
+                            </transformers>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.ejml:*</include>
+                                </includes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.MF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>schematic</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>schem</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>${project.java.language.version}</source>
+                    <target>${project.java.language.version}</target>
                 </configuration>
             </plugin>
         </plugins>
@@ -85,7 +91,6 @@
 
 
     <repositories>
-
         <repository>
             <id>enginehub-maven</id>
             <url>https://maven.enginehub.org/repo/</url>
@@ -101,7 +106,7 @@
         </repository>
         <repository>
             <id>paper-repo</id>
-            <url>https://papermc.io/repo/repository/maven-public/</url>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
             <id>spigot-repo</id>
@@ -127,6 +132,11 @@
     </repositories>
     <dependencies>
         <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.21.1-R0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.21.1-R0.1-SNAPSHOT</version>
@@ -136,7 +146,19 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
+            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ticxo.modelengine</groupId>
+            <artifactId>ModelEngine</artifactId>
+            <version>R4.0.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.LoneDev6</groupId>
+            <artifactId>api-itemsadder</artifactId>
+            <version>3.6.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -154,7 +176,7 @@
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
-            <version>7.2.8-SNAPSHOT</version>
+            <version>7.4.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -185,8 +207,6 @@
             <version>2.9.2</version>
             <scope>provided</scope>
         </dependency>
-
-
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-legacy</artifactId>

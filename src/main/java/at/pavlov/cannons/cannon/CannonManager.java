@@ -286,7 +286,7 @@ public class CannonManager
             return MessageEnum.ErrorNotTheOwner;
         if (!player.hasPermission(cannon.getCannonDesign().getPermissionRename()))
             return MessageEnum.PermissionErrorRename;
-        if (newCannonName == null || !isCannonNameUnique(newCannonName))
+        if (!isCannonNameUnique(newCannonName))
             return MessageEnum.CannonRenameFail;
 
         //put the new name

@@ -24,10 +24,10 @@ public enum CommandList {
     PERMISSIONS("permissions", "/cannons permissions [NAME]", "cannons.admin.permissions", true),
     BLOCKDATA("blockdata", "/cannons blockdata", "cannons.admin.blockdata", true);
 
-    private String command;
-    private String usage;
-    private String permission;
-    private Boolean adminCmd;
+    private final String command;
+    private final String usage;
+    private final String permission;
+    private final Boolean adminCmd;
 
     CommandList(String command, String usage, String permission, boolean adminCmd){
         this.command = command;

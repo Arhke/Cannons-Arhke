@@ -45,7 +45,7 @@ public class BlockListener implements Listener
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
         if (plugin.getMyConfig().isRelayExplosionEvent()) {
-            EntityExplodeEvent explodeEvent = new EntityExplodeEvent(null, event.getBlock().getLocation(), event.blockList(), event.getYield());
+            EntityExplodeEvent explodeEvent = new EntityExplodeEvent(null, event.getBlock().getLocation(), event.blockList(), event.getYield(), ExplosionResult.DESTROY);
             Bukkit.getServer().getPluginManager().callEvent(explodeEvent);
             event.setCancelled(explodeEvent.isCancelled());
         }
@@ -63,7 +63,7 @@ public class BlockListener implements Listener
         }
 
         //search for destroyed cannons
-        plugin.getEntityListener().ExplosionEventHandler(event.blockList());
+        plugin.getEntityListener().explosionEventHandler(event.blockList());
     }
 
     /**
@@ -175,7 +175,7 @@ public class BlockListener implements Listener
             if (plugin.getAiming().isInAimingMode(event.getPlayer().getUniqueId()))
                 aimingCannon = plugin.getAiming().getCannonInAimingMode(event.getPlayer());
 
-            if (cannon.isDestructibleBlock(event.getBlock().getLocation()) && (aimingCannon==null||!cannon.equals(aimingCannon)) && !plugin.getCommandListener().isSelectingMode(event.getPlayer())) {
+            if (cannon.isDestructibleBlock(event.getBlock().getLocation()) && (!cannon.equals(aimingCannon)) && !plugin.getCommandListener().isSelectingMode(event.getPlayer())) {
                 plugin.getCannonManager().removeCannon(cannon, false, true, BreakCause.PlayerBreak);
                 plugin.logDebug("cannon broken:  " + cannon.isDestructibleBlock(event.getBlock().getLocation()));
             }
@@ -186,8 +186,7 @@ public class BlockListener implements Listener
         }
 
         //if the the last block on a cannon is broken and signs are required
-        if (event.getBlock().getBlockData() instanceof WallSign){
-            WallSign sign = (WallSign) event.getBlock().getBlockData();
+        if (event.getBlock().getBlockData() instanceof WallSign sign){
             cannon = plugin.getCannonManager().getCannon(event.getBlock().getRelative(sign.getFacing().getOppositeFace()).getLocation(), null);
             plugin.logDebug("cancelled cannon sign  " + event.getBlock().getRelative(sign.getFacing().getOppositeFace()));
             if (cannon != null && cannon.getCannonDesign().isSignRequired() && cannon.getNumberCannonSigns() <= 1) {
@@ -306,13 +305,10 @@ public class BlockListener implements Listener
         else if(wmin == w2) CommonOps_DDRM.extract(V, 0, 3, 2, 3, normalVector, 0, 0);
 
         //====================<Penetration Calculation>===============
-        double pen = event.getProjectile().getPenetration()*(new Random().nextGaussian()*0.15+1);
-//        bc("starting pen" + pen);
-//        Bukkit.broadcastMessage("Pen " + pen);
-        Vector projVelocity = event.getProjectileEntity().getVelocity();
-        Vector perp = new Vector(normalVector.get(0), normalVector.get(1), normalVector.get(2));
-//        Bukkit.getPlayer("Arhke").teleport(event.getImpactLocation().clone().setDirection(perp));
-//        Bukkit.broadcastMessage(perp.toString());
+        Random random = new Random();
+        double pen = event.getProjectile().getPenetration()*(random.nextGaussian()*0.15+1);
+        Vector projectileVelocity = event.getProjectileEntity().getVelocity();
+        Vector perpendicularProjectileVelocity = new Vector(normalVector.get(0), normalVector.get(1), normalVector.get(2));
         Player player = Bukkit.getPlayer(event.getShooterUID());
         assert player != null;
         if(bt != null && !bt.isCancelled()){
@@ -322,27 +318,26 @@ public class BlockListener implements Listener
             int i = 0;
             @Override
             public void run(){
-                Location locc = event.getImpactLocation();
+                Location impactLocation = event.getImpactLocation();
                 player.spawnParticle(Particle.DRIPPING_DRIPSTONE_LAVA,
-                        new Location(event.getImpactLocation().getWorld(), locc.getX() + centroid[0],
-                                locc.getY() + centroid[1], locc.getZ() + centroid[2]), 5);
-                double d = locc.getX()*normalVector.get(0) + locc.getY()*normalVector.get(1) + locc.getZ()*normalVector.get(2);
+                        new Location(event.getImpactLocation().getWorld(), impactLocation.getX() + centroid[0],
+                                impactLocation.getY() + centroid[1], impactLocation.getZ() + centroid[2]), 5);
+                double d = impactLocation.getX()*normalVector.get(0) + impactLocation.getY()*normalVector.get(1) + impactLocation.getZ()*normalVector.get(2);
                 for(double x = -2; x < 2; x+=0.5){
                     for(double y = -2; y < 2; y+=0.5){
-                        double z = (d-(locc.getX()+x)*normalVector.get(0) - (locc.getY()+y)*normalVector.get(1))/normalVector.get(2);
+                        double z = (d-(impactLocation.getX()+x)*normalVector.get(0) - (impactLocation.getY()+y)*normalVector.get(1))/normalVector.get(2);
                         player.spawnParticle(Particle.DRIPPING_DRIPSTONE_WATER,
-                                new Location(event.getImpactLocation().getWorld(), locc.getX() + x,
-                                locc.getY() + y, z), 5);
+                                new Location(event.getImpactLocation().getWorld(), impactLocation.getX() + x,
+                                impactLocation.getY() + y, z), 5);
                     }
                 }
-
 
                 if (i++ > 1200){
                     this.cancel();
                 }
             }
         }.runTaskTimer(plugin, 1, 1);
-        double impactCos = Math.abs(Math.cos(projVelocity.angle(perp)));
+        double impactCos = Math.abs(Math.cos(projectileVelocity.angle(perpendicularProjectileVelocity)));
         if (impactCos < 0.34202014332){
 
             if (Math.random() > 0.5)player.sendMessage("Ricochet ~ !");
@@ -360,7 +355,7 @@ public class BlockListener implements Listener
 
 
         //==================<RayCasting>==============
-        RayTrace rt = new RayTrace(projVelocity);
+        RayTrace rt = new RayTrace(projectileVelocity);
         Location rayLoc = event.getProjectileEntity().getLocation().clone();
         List<Block> blockList = new ArrayList<>();
         boolean hasReachedWall = false;
@@ -398,8 +393,7 @@ public class BlockListener implements Listener
         if (pen > 0) {
             //penned
             if(event.getProjectile().getPenetrationDamage()) {
-                EntityExplodeEvent bee = new EntityExplodeEvent(event.getProjectileEntity(), event.getImpactLocation(), blockList,
-                        0);
+                EntityExplodeEvent bee = new EntityExplodeEvent(event.getProjectileEntity(), event.getImpactLocation(), blockList, 0, ExplosionResult.DESTROY);
                 Bukkit.getPluginManager().callEvent(bee);
                 if(!bee.isCancelled())
                     blockList.forEach(Block::breakNaturally);

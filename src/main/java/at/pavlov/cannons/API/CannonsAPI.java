@@ -26,7 +26,7 @@ public class CannonsAPI {
      * fires the given cannon
      * @param cannon the cannon to fire
      * @param player the player how is firing the cannon. Player:null will skip permission check.
-     * @param autoreload if the cannon will autoreload from a chest after firing
+     * @param autoreload if the cannon will auto reload from a chest after firing
      * @param consumesAmmo if true the cannon will remove ammo from attached chests
      * @return returns a MessagesEnum if the firing was successful or not
      */

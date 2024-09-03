@@ -1,11 +1,11 @@
 package at.pavlov.cannons;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -20,6 +20,7 @@ import at.pavlov.cannons.projectile.ProjectileManager;
 import at.pavlov.cannons.projectile.ProjectileStorage;
 import at.pavlov.cannons.scheduler.FakeBlockHandler;
 import at.pavlov.cannons.scheduler.ProjectileObserver;
+import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -41,7 +42,7 @@ import at.pavlov.cannons.projectile.Projectile;
 public final class Cannons extends JavaPlugin
 {
 	private PluginManager pm;
-	private final Logger logger = Logger.getLogger("Minecraft");
+	private final Logger logger = this.getLogger();
 
     private final Config config;
 	private final FireCannon fireCannon;
@@ -49,6 +50,7 @@ public final class Cannons extends JavaPlugin
 	private final Aiming aiming;
     private final ProjectileObserver observer;
     private final FakeBlockHandler fakeBlockHandler;
+	private final Random random;
 
     private final CannonsAPI cannonsAPI;
     private Economy economy;
@@ -68,11 +70,11 @@ public final class Cannons extends JavaPlugin
 	private final String whitelistDatabase = "whitelist_2_4_6";
 
 
-	public Cannons()
-	{
+	public Cannons() {
 		super();
 
         //setup all classes
+		this.random = new Random();
         this.config = new Config(this);
         this.explosion = new CreateExplosion(this, config);
         this.fireCannon = new FireCannon(this, config);
@@ -117,7 +119,7 @@ public final class Cannons extends JavaPlugin
 				e.printStackTrace();
 			}
 		}
-		logger.info(getLogPrefix() + "Cannons plugin v" + getPluginDescription().getVersion() + " has been disabled");
+		logger.info(getLogPrefix() + "Cannons plugin v" + this.getPluginMeta().getVersion() + " has been disabled");
 	}
 
 	public void onEnable()
@@ -132,8 +134,8 @@ public final class Cannons extends JavaPlugin
 		if (!checkWorldEdit())
 		{
 			//no worldEdit has been loaded. Disable plugin
-			console.sendMessage(ChatColor.RED + "[Cannons] Please install WorldEdit, else Cannons can't load.");
-			console.sendMessage(ChatColor.RED + "[Cannons] Plugin is now disabled.");
+			logger.severe("Please install WorldEdit, else Cannons can't load.");
+			logger.severe("Plugin is now disabled.");
 			
 			pm.disablePlugin(this);
 			return;
@@ -154,24 +156,22 @@ public final class Cannons extends JavaPlugin
 			config.loadConfig();
 
 			// Initialize the database
-			getServer().getScheduler().runTaskAsynchronously(this, new Runnable()
-			{
-				public void run()
-				{
-					try {
-						openConnection();
-						Statement statement = connection.createStatement();
-						statement.close();
-						getPlugin().logInfo("Connected to database");
-					} catch (ClassNotFoundException | SQLException e) {
-						e.printStackTrace();
-					}
-					//create the tables for the database in case they don't exist
-					persistenceDatabase.createTables();
-					// load cannons from database
-					persistenceDatabase.loadCannons();
-				}
-			});
+			getServer().getScheduler().runTaskAsynchronously(this, () -> {
+                try {
+                    openConnection();
+                    Statement statement = connection.createStatement();
+                    statement.close();
+                    getPlugin().logInfo("Connected to database");
+                } catch (ClassNotFoundException e) {
+					logger.severe("Could not open a database connection. Driver class" + e.getClass().getName() + "not found.");
+				} catch (SQLException e) {
+					logger.severe(e.getMessage());
+                }
+                //create the tables for the database in case they don't exist
+                persistenceDatabase.createTables();
+                // load cannons from database
+                persistenceDatabase.loadCannons();
+            });
 
 
 			// setting up Aiming Mode Task
@@ -192,13 +192,13 @@ public final class Cannons extends JavaPlugin
 
             logDebug("Time to enable cannons: " + new DecimalFormat("0.00").format((System.nanoTime() - startTime)/1000000.0) + "ms");
 
-            // Plugin succesfully enabled
-            logger.info(getLogPrefix() + "Cannons plugin v" + getPluginDescription().getVersion() + " has been enabled");
+            // Plugin successfully enabled
+            logger.info(getLogPrefix() + "Cannons plugin v" + this.getPluginMeta().getVersion() + " has been enabled");
 		}
 		catch (Exception ex)
 		{
 			// Plugin failed to enable
-			logSevere(String.format("[%s v%s] could not be enabled!", getDescription().getName(), getDescription().getVersion()));
+			logger.severe(String.format("[%s v%s] could not be enabled!", getPluginMeta().getName(), getPluginMeta().getVersion()));
 
 			// Print the stack trace of the actual cause
 			Throwable t = ex;
@@ -206,7 +206,7 @@ public final class Cannons extends JavaPlugin
 			{
 				if (t.getCause() == null)
 				{
-					logSevere(String.format("[%s v%s] exception:", getDescription().getName(), getDescription().getVersion()));
+					logger.severe(String.format("[%s v%s] exception:", getPluginMeta().getName(), getPluginMeta().getVersion()));
 					t.printStackTrace();
 				}
 
@@ -224,7 +224,7 @@ public final class Cannons extends JavaPlugin
             return false;
         }
         economy = rsp.getProvider();
-        return economy != null;
+        return true;
     }
 
 
@@ -263,7 +263,7 @@ public final class Cannons extends JavaPlugin
 		return this.isEnabled();
 	}
 
-	public final Config getMyConfig()
+	public Config getMyConfig()
 	{
 		return config;
 	}
@@ -275,7 +275,7 @@ public final class Cannons extends JavaPlugin
 
 	private String getLogPrefix()
 	{
-		return "[" + getPluginDescription().getName() + "] ";
+		return "[" + this.getPluginMeta().getName() + "] ";
 	}
 
 	public void logSevere(String msg)
@@ -301,11 +301,18 @@ public final class Cannons extends JavaPlugin
 		return config.isDebugMode();
 	}
 
-	public void broadcast(String msg)
+	public void broadcast(Component message)
 	{
-		this.getServer().broadcastMessage(msg);
+		this.getServer().broadcast(message);
 	}
 
+	/**
+	 * @return the Cannons' {@link PluginDescriptionFile}.
+	 * @deprecated since 2.0-SNAPSHOT (2024-09-02);
+	 * 		Not guaranteed to have a PluginDescriptionFile in the future.
+	 * 		Consider using {@link JavaPlugin#getPluginMeta()} instead.
+	 */
+	@Deprecated (since = "2.0-SNAPSHOT", forRemoval = true)
 	public PluginDescriptionFile getPluginDescription()
 	{
 		return this.getDescription();
@@ -450,4 +457,8 @@ public final class Cannons extends JavaPlugin
 	public String getWhitelistDatabase() {
 		return whitelistDatabase;
 	}
+
+    public Random getRandom() {
+        return random;
+    }
 }

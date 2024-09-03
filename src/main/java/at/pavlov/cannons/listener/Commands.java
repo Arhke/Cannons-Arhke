@@ -41,11 +41,11 @@ public class Commands implements TabExecutor
     private final PersistenceDatabase persistenceDatabase;
 
     //<player,command to be performed>;
-    private HashMap<UUID,SelectCannon> cannonSelector = new HashMap<>();
+    private final HashMap<UUID,SelectCannon> cannonSelector = new HashMap<>();
     //<player,command to be performed>;
-    private HashMap<UUID,Boolean> selectTargetBoolean = new HashMap<>();
+    private final HashMap<UUID,Boolean> selectTargetBoolean = new HashMap<>();
     //<player,playerUID>;
-    private HashMap<UUID,UUID> whitelistPlayer = new HashMap<>();
+    private final HashMap<UUID,UUID> whitelistPlayer = new HashMap<>();
 
 
 
@@ -592,7 +592,7 @@ public class Commands implements TabExecutor
                 }
                 else
                 {
-                    plugin.logInfo("Cannons plugin v" + plugin.getPluginDescription().getVersion() + " is running");
+                    plugin.logInfo("Cannons plugin v" + plugin.getPluginMeta().getVersion() + " is running");
                 }
             }
             return true;
@@ -746,11 +746,8 @@ public class Commands implements TabExecutor
         SelectCannon cmd = cannonSelector.get(player.getUniqueId());
         if (cmd != null)
         {
-            switch (cmd){
-                case BLOCK_DATA:{
-                    player.sendMessage(block.getBlockData().getAsString());
-                    break;
-                }
+            if (cmd == SelectCannon.BLOCK_DATA) {
+                player.sendMessage(block.getBlockData().getAsString());
             }
         }
         cannonSelector.remove(player.getUniqueId());
@@ -918,6 +915,10 @@ public class Commands implements TabExecutor
                     }
                     break;
                 }
+                case BLOCK_DATA:
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + cmd);
             }
         }
         selectTargetBoolean.remove(player.getUniqueId());

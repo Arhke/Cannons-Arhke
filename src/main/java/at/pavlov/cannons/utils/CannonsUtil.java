@@ -73,11 +73,8 @@ public class CannonsUtil
 		File file = new File(folderPath);
 		if (file.isDirectory())
 		{
-			if (file.list().length > 0)
-			{
-				//folder is not empty
-				return false;
-			}
+            //folder is not empty
+            return file.list().length <= 0;
 		}
 		return true;
 	}
@@ -341,37 +338,37 @@ public class CannonsUtil
 
         if (boots != null)
         {
-            lvl = boots.getEnchantmentLevel(Enchantment.PROTECTION_EXPLOSIONS);
+            lvl = boots.getEnchantmentLevel(Enchantment.BLAST_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = boots.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = boots.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
         if (helmet != null)
         {
-            lvl = helmet.getEnchantmentLevel(Enchantment.PROTECTION_EXPLOSIONS);
+            lvl = helmet.getEnchantmentLevel(Enchantment.BLAST_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = helmet.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = helmet.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
         if (chest != null)
         {
-            lvl = chest.getEnchantmentLevel(Enchantment.PROTECTION_EXPLOSIONS);
+            lvl = chest.getEnchantmentLevel(Enchantment.BLAST_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = chest.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = chest.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
         if (pants != null)
         {
-            lvl = pants.getEnchantmentLevel(Enchantment.PROTECTION_EXPLOSIONS);
+            lvl = pants.getEnchantmentLevel(Enchantment.BLAST_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = pants.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = pants.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
@@ -411,37 +408,37 @@ public class CannonsUtil
 
         if (boots != null)
         {
-            lvl = boots.getEnchantmentLevel(Enchantment.PROTECTION_PROJECTILE);
+            lvl = boots.getEnchantmentLevel(Enchantment.PROJECTILE_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = boots.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = boots.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
         if (helmet != null)
         {
-            lvl = helmet.getEnchantmentLevel(Enchantment.PROTECTION_PROJECTILE);
+            lvl = helmet.getEnchantmentLevel(Enchantment.PROJECTILE_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = helmet.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = helmet.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
         if (chest != null)
         {
-            lvl = chest.getEnchantmentLevel(Enchantment.PROTECTION_PROJECTILE);
+            lvl = chest.getEnchantmentLevel(Enchantment.PROJECTILE_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = chest.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = chest.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
         if (pants != null)
         {
-            lvl = pants.getEnchantmentLevel(Enchantment.PROTECTION_PROJECTILE);
+            lvl = pants.getEnchantmentLevel(Enchantment.PROJECTILE_PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 1.5 / 3);
-            lvl = pants.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL);
+            lvl = pants.getEnchantmentLevel(Enchantment.PROTECTION);
             if (lvl > 0)
                 reduction += Math.floor((6 + lvl * lvl) * 0.75 / 3);
         }
@@ -474,7 +471,7 @@ public class CannonsUtil
         {
             if(item != null)
             {
-                int lvl = item.getEnchantmentLevel(Enchantment.DURABILITY);
+                int lvl = item.getEnchantmentLevel(Enchantment.UNBREAKING);
                 //chance of breaking in 0-1
                 double breakingChance = 0.6+0.4/(lvl+1);
 
@@ -811,8 +808,8 @@ public class CannonsUtil
     public static HashMap<UUID, Entity> getNearbyEntities(Location l, int minRadius, int maxRadius){
         int chunkRadius = maxRadius < 16 ? 1 : (maxRadius - (maxRadius % 16))/16;
         HashMap<UUID, Entity> radiusEntities = new HashMap<UUID, Entity>();
-        for (int chX = 0 -chunkRadius; chX <= chunkRadius; chX ++){
-            for (int chZ = 0 -chunkRadius; chZ <= chunkRadius; chZ++){
+        for (int chX = -chunkRadius; chX <= chunkRadius; chX ++){
+            for (int chZ = -chunkRadius; chZ <= chunkRadius; chZ++){
                 int x=(int) l.getX(),y=(int) l.getY(),z=(int) l.getZ();
                 for (Entity e : new Location(l.getWorld(),x+(chX*16),y,z+(chZ*16)).getChunk().getEntities()){
                     double dist = e.getLocation().distance(l);
@@ -834,15 +831,14 @@ public class CannonsUtil
     public static HashMap<UUID, Target> getNearbyTargets(Location l, int minRadius, int maxRadius){
         int chunkTargets = maxRadius < 16 ? 1 : (maxRadius - (maxRadius % 16))/16;
         HashMap<UUID, Target> radiusTargets = new HashMap<UUID, Target>();
-        for (int chX = 0 -chunkTargets; chX <= chunkTargets; chX ++){
-            for (int chZ = 0 -chunkTargets; chZ <= chunkTargets; chZ++){
+        for (int chX = -chunkTargets; chX <= chunkTargets; chX ++){
+            for (int chZ = -chunkTargets; chZ <= chunkTargets; chZ++){
                 int x=(int) l.getX(),y=(int) l.getY(),z=(int) l.getZ();
                 for (Entity e : new Location(l.getWorld(),x+(chX*16),y,z+(chZ*16)).getChunk().getEntities()){
                     if (e.getWorld().equals(l.getWorld())) {
                         double dist = e.getLocation().distance(l);
                         if (e instanceof LivingEntity && !e.isDead() && minRadius <= dist && dist <= maxRadius && e.getLocation().getBlock() != l.getBlock()) {
-                            if ((e instanceof Player)){
-                                Player p = (Player) e;
+                            if ((e instanceof Player p)){
                                 if (p.getGameMode() == GameMode.CREATIVE || p.hasPermission("cannons.admin.notarget"))
                                     continue;
                             }
@@ -907,14 +903,11 @@ public class CannonsUtil
             return false;
         if (bPlayer.isOnline()){
             Player player = (Player) bPlayer;
-            if (player.isOnline())
-                return true;
+            return player.isOnline();
         }
         else{
-            if(bPlayer.hasPlayedBefore())
-                return true;
+            return bPlayer.hasPlayedBefore();
         }
-        return false;
     }
 
 

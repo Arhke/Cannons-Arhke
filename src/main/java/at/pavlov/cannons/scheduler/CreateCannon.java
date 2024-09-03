@@ -8,8 +8,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class CreateCannon extends BukkitRunnable {
 
     private final Cannons plugin;
-    private Cannon cannon;
-    private Boolean saveToDatabase;
+    private final Cannon cannon;
+    private final Boolean saveToDatabase;
 
     public CreateCannon(Cannons plugin, Cannon cannon, boolean saveToDatabase){
         this.plugin = plugin;

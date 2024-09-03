@@ -46,9 +46,9 @@ class CannonBlocks
     public Vector getFiringTrigger()
     {
     	//return one tigger
-    	if (rightClickTrigger != null && rightClickTrigger.size() > 0)
+    	if (rightClickTrigger != null && !rightClickTrigger.isEmpty())
     		return rightClickTrigger.get(0);	
-    	if (redstoneTrigger != null && redstoneTrigger.size() > 0)
+    	if (redstoneTrigger != null && !redstoneTrigger.isEmpty())
         	return redstoneTrigger.get(0);
         return null;
     }

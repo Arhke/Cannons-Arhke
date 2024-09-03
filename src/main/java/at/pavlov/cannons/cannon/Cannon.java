@@ -39,13 +39,13 @@ public class Cannon
 
     // direction the cannon is facing
     private BlockFace cannonDirection;
-    // the location is describe by the offset of the cannon and the design
+    // the location is described by the offset of the cannon and the design
     private Vector offset;
     // world of the cannon
     private UUID world;
     // if the cannon is on a ship, the operation might be limited (e.g smaller angles to adjust the cannon)
     private boolean onShip;
-    // with which velocity the canno is moving (set by other plugins)
+    // with which velocity the cannon is moving (set by other plugins)
     private Vector velocity;
 
     // time the cannon was last time fired
@@ -88,7 +88,7 @@ public class Cannon
     // tracking entity
     private UUID sentryEntity;
     // store older targets, so we do not target the same all the time
-    private ArrayList<UUID> sentryEntityHistory;
+    private final ArrayList<UUID> sentryEntityHistory;
     // how long this entity is targeted by this cannon
     private long sentryTargetingTime;
     // last time loading was tried and failed. Wait some time before trying again
@@ -106,15 +106,15 @@ public class Cannon
 
     // cannon operator (can be null), distance to the cannon matters
     private UUID cannonOperator;
-    // linked cannon operator is controling cannon via a master cannon.
+    // linked cannon operator is controlling cannon via a master cannon.
     private boolean masterCannon;
 
     //observer will see the impact of the target predictor
     //<Player name, remove after showing impact>
-    private HashMap<UUID, Boolean> observerMap = new HashMap<UUID, Boolean>();
+    private final HashMap<UUID, Boolean> observerMap = new HashMap<UUID, Boolean>();
 
     //a sentry cannon will not target a whitelisted player
-    private HashSet<UUID> whitelist = new HashSet<UUID>();
+    private final HashSet<UUID> whitelist = new HashSet<UUID>();
 
     // player who has build this cannon
     private UUID owner;
@@ -238,12 +238,11 @@ public class Cannon
      */
     public Location getRandomBarrelBlock()
     {
-        Random r = new Random();
         List<Location> barrel = design.getBarrelBlocks(this);
         if (barrel.size() > 0)
-            return barrel.get(r.nextInt(barrel.size()));
+            return barrel.get(Cannons.getPlugin().getRandom().nextInt(barrel.size()));
         List<Location> all = design.getAllCannonBlocks(this);
-        return all.get(r.nextInt(all.size()));
+        return all.get(Cannons.getPlugin().getRandom().nextInt(all.size()));
     }
 
 
@@ -364,8 +363,11 @@ public class Cannon
             item = mat.toItemStack(item.getAmount());
             item = InventoryManagement.removeItem(invlist, item);
 
+            if (item == null || item.isEmpty()) {
+                return true;
+            }
 
-            int usedItems= toCool - item.getAmount();
+            int usedItems = toCool - item.getAmount();
             this.setTemperature(this.getTemperature()-usedItems*design.getCoolingAmount());
 
             //put used items back to the chest (not if the item is AIR)
@@ -375,7 +377,7 @@ public class Cannon
                 InventoryManagement.addItemInChests(invlist, itemUsed);
 
             //if all items have been removed we are done
-            if (item.getAmount() == 0)
+            if (item.getAmount() <= 0 || item.isEmpty())
                 return true;
         }
         return false;
@@ -843,7 +845,7 @@ public class Cannon
         if (breakBlocks)
             breakAllCannonBlocks();
 
-        //loaded cannon can exploded (80% chance)
+        //loaded cannon can explode (80% chance)
         if (canExplode && design.getExplodingLoadedCannons() > 0 && getLoadedGunpowder() > 0 && Math.random() > 0.2)
         {
             double power = 1.0*getLoadedGunpowder()/design.getMaxLoadableGunpowderNormal()*design.getExplodingLoadedCannons();
@@ -857,17 +859,12 @@ public class Cannon
             dropCharge();
 
         // return message
-        switch (cause)
-        {
-            case Overheating:
-                return MessageEnum.HeatManagementOverheated;
-            case Other:
-                return null;
-            case Dismantling:
-                return MessageEnum.CannonDismantled;
-            default:
-                return MessageEnum.CannonDestroyed;
-        }
+        return switch (cause) {
+            case Overheating -> MessageEnum.HeatManagementOverheated;
+            case Other -> null;
+            case Dismantling -> MessageEnum.CannonDismantled;
+            default -> MessageEnum.CannonDestroyed;
+        };
     }
 
     /**
@@ -1353,13 +1350,9 @@ public class Cannon
         if (amount <= 0)
             return;
 
-        Random r = new Random();
         List<Location> barrelList = design.getBarrelBlocks(this);
 
-        //if the barrel list is 0 something is completely odd
         int max = barrelList.size();
-        if (max < 0)
-            return;
 
         Location effectLoc;
         BlockFace face;
@@ -1372,7 +1365,7 @@ public class Cannon
             do
             {
                 i++;
-                effectLoc = barrelList.get(r.nextInt(max)).getBlock().getRelative(face).getLocation();
+                effectLoc = barrelList.get(Cannons.getPlugin().getRandom().nextInt(max)).getBlock().getRelative(face).getLocation();
             } while (i<4 && effectLoc.getBlock().getType() != Material.AIR);
 
             effectLoc.getWorld().playEffect(effectLoc, Effect.SMOKE, face);
@@ -1445,8 +1438,6 @@ public class Cannon
         if (projectile == null)
             projectile = lastFiredProjectile;
 
-        Random r = new Random();
-
         double playerSpread = 1.0;
         if (usePlayerSpread)
             playerSpread = getLastPlayerSpreadMultiplier();
@@ -1455,11 +1446,11 @@ public class Cannon
         double deviation = 0.0;
 
         if (addSpread)
-            deviation = r.nextGaussian() * spread;
+            deviation = Cannons.getPlugin().getRandom().nextGaussian() * spread;
         double h = (getTotalHorizontalAngle() + deviation + CannonsUtil.directionToYaw(cannonDirection));
 
         if (addSpread)
-            deviation = r.nextGaussian() * spread;
+            deviation = Cannons.getPlugin().getRandom().nextGaussian() * spread;
         double v = (-getTotalVerticalAngle() + deviation);
 
         double multi = getCannonballVelocity();
@@ -1467,7 +1458,7 @@ public class Cannon
 
         double randomness = 1.0;
         if (addSpread)
-            randomness = (1.0 + r.nextGaussian()*spread/180.0);
+            randomness = (1.0 + Cannons.getPlugin().getRandom().nextGaussian()*spread/180.0);
         return CannonsUtil.directionToVector(h, v, multi*randomness);
     }
 
@@ -1707,8 +1698,7 @@ public class Cannon
      */
     public boolean equals(CannonDesign cannonDesign)
     {
-        if (designID.equals(cannonDesign.getDesignID())) return true;
-        return false;
+        return designID.equals(cannonDesign.getDesignID());
     }
 
     /**
@@ -1719,8 +1709,7 @@ public class Cannon
     @Override
     public boolean equals(Object obj)
     {
-        if (obj instanceof Cannon) {
-            Cannon obj2 = (Cannon) obj;
+        if (obj instanceof Cannon obj2) {
             return this.getUID().equals(obj2.getUID());
         }
         return false;
@@ -1799,38 +1788,30 @@ public class Cannon
         return world;
     }
 
-    public void setWorld(UUID world)
-    {
+    public void setWorld(UUID world) {
         this.world = world;
         this.hasUpdated();
     }
 
-    public long getLastFired()
-    {
+    public long getLastFired() {
         return lastFired;
     }
 
-    public void setLastFired(long lastFired)
-    {
+    public void setLastFired(long lastFired) {
         this.lastFired = lastFired;
         this.hasUpdated();
     }
 
-    public int getLoadedGunpowder()
-    {
-        if (loadedGunpowder<design.getMaxLoadableGunpowderNormal() && !design.isGunpowderNeeded())
-            design.getMaxLoadableGunpowderNormal();
-
+    public int getLoadedGunpowder() {
         return loadedGunpowder;
     }
 
-    public void setLoadedGunpowder(int loadedGunpowder)
-    {
+    public void setLoadedGunpowder(int loadedGunpowder) {
         this.loadedGunpowder = loadedGunpowder;
         this.hasUpdated();
     }
 
-    public double getHorizontalAngle(){
+    public double getHorizontalAngle() {
         return horizontalAngle;
     }
 
@@ -2423,9 +2404,7 @@ public class Cannon
 	{
         double chance = getOverloadingExplosionChance();
         //Cannons.getPlugin().logDebug("Chance of explosion (overloading) = " + design.getOverloadingChangeInc() + " * ((" + loadedGunpowder + " ( may to be - " + design.getMaxLoadableGunpowder_Normal() + ")) * " + design.getOverloadingChanceOfExplosionPerGunpowder() + ") ^ " + design.getOverloadingExponent() + " (may to be multiplied by " + tempValue + " / " + design.getMaximumTemperature() + " = " + chance);
-        if(Math.random()<chance)
-            return true;
-        return false;
+        return Math.random() < chance;
     }
 
     public long getFiredCannonballs() {
