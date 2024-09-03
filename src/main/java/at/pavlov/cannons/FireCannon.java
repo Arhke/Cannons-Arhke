@@ -23,7 +23,6 @@ import org.bukkit.util.Vector;
 import at.pavlov.cannons.cannon.Cannon;
 import at.pavlov.cannons.cannon.CannonDesign;
 import at.pavlov.cannons.config.Config;
-import at.pavlov.cannons.cannon.DesignStorage;
 import at.pavlov.cannons.projectile.Projectile;
 import at.pavlov.cannons.projectile.ProjectileProperties;
 
@@ -110,7 +109,7 @@ public class FireCannon {
     public MessageEnum redstoneFiring(Cannon cannon, InteractAction action)
     {
         CannonDesign design = cannon.getCannonDesign();
-        return this.fire(cannon, null, cannon.getCannonDesign().isAutoreloadRedstone(), !design.isAmmoInfiniteForRedstone(), action);
+        return this.fire(cannon, null, cannon.getCannonDesign().isAutoReloadRedstone(), !design.isAmmoInfiniteForRedstone(), action);
     }
 
     /**
