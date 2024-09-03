@@ -1,6 +1,7 @@
 package at.pavlov.cannons.container;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -9,6 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -16,6 +18,8 @@ import java.util.*;
 //small class as at.pavlov.cannons.container for item id and data
 public class ItemHolder
 {
+	public static final @NotNull TextComponent AIR = Component.text("Air");
+	public static final @NotNull TextComponent EMPTY_STRING = Component.text("");
 	private Material material;
 	private Component displayName;
 	private List<Component> lore;
@@ -48,7 +52,7 @@ public class ItemHolder
 				//Cannons.getPlugin().logDebug("display name: " + displayName);
 			}
 			else
-				displayName = Component.text("");
+				displayName = EMPTY_STRING;
 			if (meta.hasLore() && meta.lore() != null)
 				lore = meta.lore();
 			else
@@ -75,10 +79,10 @@ public class ItemHolder
         else
             this.material = Material.AIR;
 		if (description != null)
-			//TODO ComponentAPI: Replace with Mini Message formatting | ensure color is translated. -Flag
+			//TODO ComponentAPI: Replace with Mini Message formatting || ensure color is translated. -Flag
 			this.displayName = Component.text(ChatColor.translateAlternateColorCodes('&',description));
 		else
-			this.displayName = Component.text("");
+			this.displayName = EMPTY_STRING;
 		if (lore != null)
 			this.lore = lore;
 		else
@@ -104,9 +108,10 @@ public class ItemHolder
             }
 
 			if (s.hasNext())
+				//TODO ComponentAPI: Replace with Mini Message formatting || ensure color is translated. -Flag
 				displayName = Component.text(ChatColor.translateAlternateColorCodes('&', s.next()));
 			else
-				displayName = Component.text("");
+				displayName = EMPTY_STRING;
 
 			lore = new ArrayList<>();
 			while (s.hasNext()){
@@ -247,7 +252,7 @@ public class ItemHolder
 	}
 
     public boolean hasDisplayName(){
-        return this.displayName!= null && !this.displayName.equals(Component.text(""));
+        return this.displayName!= null && !this.displayName.equals(EMPTY_STRING);
     }
 
 	public List<Component> getLore() {
@@ -280,11 +285,11 @@ public class ItemHolder
 	}
 
 	private static Component getFriendlyName(Material material) {
-		return material == null ? Component.text("Air") : getFriendlyName(new ItemStack(material), false);
+		return material == null ? AIR : getFriendlyName(new ItemStack(material), false);
 	}
 
 	private static Component getFriendlyName(ItemStack itemStack, boolean checkDisplayName) {
-		if (itemStack == null || itemStack.getType() == Material.AIR) return Component.text("Air");
+		if (itemStack == null || itemStack.getType() == Material.AIR) return AIR;
 
 		if (checkDisplayName && itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName()) {
 			return itemStack.getItemMeta().displayName();
