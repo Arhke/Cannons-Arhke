@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -49,6 +50,7 @@ public final class Cannons extends JavaPlugin
 	private final Aiming aiming;
     private final ProjectileObserver observer;
     private final FakeBlockHandler fakeBlockHandler;
+	private final Random random;
 
     private final CannonsAPI cannonsAPI;
     private Economy economy;
@@ -72,6 +74,7 @@ public final class Cannons extends JavaPlugin
 		super();
 
         //setup all classes
+		this.random = new Random();
         this.config = new Config(this);
         this.explosion = new CreateExplosion(this, config);
         this.fireCannon = new FireCannon(this, config);
@@ -454,4 +457,8 @@ public final class Cannons extends JavaPlugin
 	public String getWhitelistDatabase() {
 		return whitelistDatabase;
 	}
+
+    public Random getRandom() {
+        return random;
+    }
 }

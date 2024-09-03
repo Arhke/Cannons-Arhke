@@ -238,12 +238,11 @@ public class Cannon
      */
     public Location getRandomBarrelBlock()
     {
-        Random r = new Random();
         List<Location> barrel = design.getBarrelBlocks(this);
         if (barrel.size() > 0)
-            return barrel.get(r.nextInt(barrel.size()));
+            return barrel.get(Cannons.getPlugin().getRandom().nextInt(barrel.size()));
         List<Location> all = design.getAllCannonBlocks(this);
-        return all.get(r.nextInt(all.size()));
+        return all.get(Cannons.getPlugin().getRandom().nextInt(all.size()));
     }
 
 
@@ -1353,13 +1352,9 @@ public class Cannon
         if (amount <= 0)
             return;
 
-        Random r = new Random();
         List<Location> barrelList = design.getBarrelBlocks(this);
 
-        //if the barrel list is 0 something is completely odd
         int max = barrelList.size();
-        if (max < 0)
-            return;
 
         Location effectLoc;
         BlockFace face;
@@ -1372,7 +1367,7 @@ public class Cannon
             do
             {
                 i++;
-                effectLoc = barrelList.get(r.nextInt(max)).getBlock().getRelative(face).getLocation();
+                effectLoc = barrelList.get(Cannons.getPlugin().getRandom().nextInt(max)).getBlock().getRelative(face).getLocation();
             } while (i<4 && effectLoc.getBlock().getType() != Material.AIR);
 
             effectLoc.getWorld().playEffect(effectLoc, Effect.SMOKE, face);
@@ -1445,8 +1440,6 @@ public class Cannon
         if (projectile == null)
             projectile = lastFiredProjectile;
 
-        Random r = new Random();
-
         double playerSpread = 1.0;
         if (usePlayerSpread)
             playerSpread = getLastPlayerSpreadMultiplier();
@@ -1455,11 +1448,11 @@ public class Cannon
         double deviation = 0.0;
 
         if (addSpread)
-            deviation = r.nextGaussian() * spread;
+            deviation = Cannons.getPlugin().getRandom().nextGaussian() * spread;
         double h = (getTotalHorizontalAngle() + deviation + CannonsUtil.directionToYaw(cannonDirection));
 
         if (addSpread)
-            deviation = r.nextGaussian() * spread;
+            deviation = Cannons.getPlugin().getRandom().nextGaussian() * spread;
         double v = (-getTotalVerticalAngle() + deviation);
 
         double multi = getCannonballVelocity();
@@ -1467,7 +1460,7 @@ public class Cannon
 
         double randomness = 1.0;
         if (addSpread)
-            randomness = (1.0 + r.nextGaussian()*spread/180.0);
+            randomness = (1.0 + Cannons.getPlugin().getRandom().nextGaussian()*spread/180.0);
         return CannonsUtil.directionToVector(h, v, multi*randomness);
     }
 
