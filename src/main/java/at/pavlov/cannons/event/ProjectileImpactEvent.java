@@ -11,11 +11,11 @@ import at.pavlov.cannons.projectile.Projectile;
 
 public class ProjectileImpactEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
-    private org.bukkit.entity.Projectile projectile_entity;
+    private final org.bukkit.entity.Projectile projectile_entity;
     private Projectile projectile;
     private Location impactLocation;
     private final UUID shooter;
-    private float explosion_power;
+    private final float explosion_power;
     private boolean cancelled;
 
     public ProjectileImpactEvent(@NotNull org.bukkit.entity.Projectile projectile_entity, Projectile projectile, float explosion_power, Location impactLocation, UUID shooter) {

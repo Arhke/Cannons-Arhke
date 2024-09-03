@@ -21,9 +21,9 @@ import at.pavlov.cannons.config.UserMessages;
 public class SignListener implements Listener
 {
 	@SuppressWarnings("unused")
-	private Config config;
+	private final Config config;
 	@SuppressWarnings("unused")
-	private UserMessages userMessages;
+	private final UserMessages userMessages;
 	private final Cannons plugin;
 	private final CannonManager cannonManager;
 

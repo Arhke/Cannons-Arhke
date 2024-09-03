@@ -25,10 +25,12 @@ public class ItemHolder
 	private List<Component> lore;
 	private boolean useTypeName;
 
-	private static Class localeClass = null;
-	private static Class craftItemStackClass = null, nmsItemStackClass = null, nmsItemClass = null;
-	private static String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
-	private static String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
+	private static final Class localeClass = null;
+	private static final Class craftItemStackClass = null;
+    private static final Class nmsItemStackClass = null;
+    private static final Class nmsItemClass = null;
+	private static final String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
+	private static final String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
 
 	public ItemHolder(ItemStack item)
 	{

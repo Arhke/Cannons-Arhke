@@ -10,7 +10,7 @@ import java.sql.Statement;
 import java.util.UUID;
 
 public class LoadWhitelistTask extends BukkitRunnable {
-    private UUID cannonId;
+    private final UUID cannonId;
 
     public LoadWhitelistTask(UUID cannonId){
         this.cannonId = cannonId;

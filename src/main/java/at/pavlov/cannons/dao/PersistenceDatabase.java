@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class PersistenceDatabase
 {
-	private Cannons plugin;
+	private final Cannons plugin;
 	private BukkitTask saveTask = null;
 
 	public PersistenceDatabase(Cannons _plugin)

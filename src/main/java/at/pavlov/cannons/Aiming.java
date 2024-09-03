@@ -65,14 +65,14 @@ public class Aiming {
     private final Config config;
 
     //<Player,cannon name>
-    private HashMap<UUID, UUID> inAimingMode = new HashMap<UUID, UUID>();
+    private final HashMap<UUID, UUID> inAimingMode = new HashMap<UUID, UUID>();
 	//<Cannon>
-	private HashSet<UUID> sentryCannons = new HashSet<UUID>();
+	private final HashSet<UUID> sentryCannons = new HashSet<UUID>();
     //<Player>
-    private HashSet<UUID> imitatedEffectsOff = new HashSet<UUID>();
+    private final HashSet<UUID> imitatedEffectsOff = new HashSet<UUID>();
 
     //<cannon uid, timespamp>
-    private HashMap<UUID, Long> lastAimed = new HashMap<UUID, Long>();
+    private final HashMap<UUID, Long> lastAimed = new HashMap<UUID, Long>();
 
 
     /**
@@ -834,9 +834,7 @@ public class Aiming {
 						cannon.setAimingPitch(cannon.getAimingPitch() + cannon.getCannonDesign().getSentrySpread() * rand.nextGaussian());
 						cannon.setAimingYaw(cannon.getAimingYaw() + cannon.getCannonDesign().getSentrySpread() * rand.nextGaussian());
 					}
-					if (cannon.canAimPitch(cannon.getAimingPitch()) && cannon.canAimYaw(cannon.getAimingYaw())) {
-						return true;
-					}
+                    return cannon.canAimPitch(cannon.getAimingPitch()) && cannon.canAimYaw(cannon.getAimingYaw());
 				}
 				// can't aim at this solution
 				return false;

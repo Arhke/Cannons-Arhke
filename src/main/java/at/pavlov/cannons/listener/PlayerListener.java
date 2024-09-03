@@ -584,8 +584,8 @@ public class PlayerListener implements Listener
                 if (!player.isSneaking() && design.isFireAfterLoading() && cannon.isLoaded() && cannon.isProjectilePushed())
                     fireCannon.playerFiring(cannon, player, InteractAction.fireAfterLoading);
 
-                if(message!=null)
-                    return;
+                if(message!=null) {
+                }
             }
         }
         //no cannon found - maybe the player has click into the air to stop aiming

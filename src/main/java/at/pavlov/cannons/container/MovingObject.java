@@ -13,7 +13,7 @@ public class MovingObject {
     private UUID world;
     private Vector loc;
     private Vector vel;
-    private EntityType entityType;
+    private final EntityType entityType;
 
 
     public MovingObject(Location loc, Vector vel, EntityType entityType)

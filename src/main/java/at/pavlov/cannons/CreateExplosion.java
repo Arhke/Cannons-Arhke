@@ -274,8 +274,7 @@ public class CreateExplosion {
 
             // add some specific data values
             // TNT
-            if (entity instanceof TNTPrimed) {
-                TNTPrimed tnt = (TNTPrimed) entity;
+            if (entity instanceof TNTPrimed tnt) {
                 try {
                     int fusetime = CannonsUtil.parseInt(entityHolder.getData().get(EntityDataType.FUSE_TIME),
                             tnt.getFuseTicks());
@@ -288,8 +287,7 @@ public class CreateExplosion {
                 }
             }
             // AreaEffectCloud
-            if (entity instanceof AreaEffectCloud) {
-                AreaEffectCloud cloud = (AreaEffectCloud) entity;
+            if (entity instanceof AreaEffectCloud cloud) {
                 try {
                     // PARTICLE ("Particle"),
                     // EFFECTS ("Effects"),
@@ -327,8 +325,7 @@ public class CreateExplosion {
                 }
             }
             // SpectralArrow
-            if (entity instanceof SpectralArrow) {
-                SpectralArrow arrow = (SpectralArrow) entity;
+            if (entity instanceof SpectralArrow arrow) {
                 try {
                     arrow.setGlowingTicks(CannonsUtil.parseInt(entityHolder.getData().get(EntityDataType.DURATION),
                             arrow.getGlowingTicks()));
@@ -338,8 +335,7 @@ public class CreateExplosion {
                 }
             }
             // TippedArrow
-            if (entity instanceof Arrow) {
-                Arrow arrow = (Arrow) entity;
+            if (entity instanceof Arrow arrow) {
                 try {
                     arrow.setBasePotionData(CannonsUtil.parsePotionData(
                             entityHolder.getData().get(EntityDataType.POTION_EFFECT), arrow.getBasePotionData()));
@@ -349,8 +345,7 @@ public class CreateExplosion {
                 }
             }
             // LivingEntity
-            if (entity instanceof LivingEntity) {
-                LivingEntity living = (LivingEntity) entity;
+            if (entity instanceof LivingEntity living) {
                 try {
                     EntityEquipment equipment = living.getEquipment();
                     if (equipment != null) {
@@ -508,7 +503,7 @@ public class CreateExplosion {
             entity.setVelocity(vect);
             // set some other properties
             entity.setDropItem(false);
-            this.plugin.logDebug("Spawned block: " + item.toString() + " at impact");
+            this.plugin.logDebug("Spawned block: " + item + " at impact");
         } else {
             this.plugin.logSevere(
                     "Item id:" + item.toString() + " can't be spawned as falling block.");
@@ -659,8 +654,7 @@ public class CreateExplosion {
     private double getPlayerDamage(Location impactLoc, Entity next, FlyingProjectile cannonball) {
         Projectile projectile = cannonball.getProjectile();
 
-        if (next instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity) next;
+        if (next instanceof LivingEntity living) {
 
             double dist = impactLoc.distance((living).getEyeLocation());
             // if the entity is too far away, return
@@ -681,8 +675,7 @@ public class CreateExplosion {
 
             // calculate the armor reduction
             double reduction = 1.0;
-            if (living instanceof HumanEntity) {
-                HumanEntity human = (HumanEntity) living;
+            if (living instanceof HumanEntity human) {
                 double armorPiercing = Math.max(projectile.getPenetration(), 0);
                 reduction *= (1 - CannonsUtil.getArmorDamageReduced(human) / (armorPiercing + 1))
                         * (1 - CannonsUtil.getBlastProtection(human));
@@ -712,8 +705,7 @@ public class CreateExplosion {
         // if (cannonball.getProjectileEntity()==null)
         // return 0.0;
 
-        if (target instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity) target;
+        if (target instanceof LivingEntity living) {
 
             // given damage is in half hearts
             double damage = projectile.getDirectHitDamage();
@@ -725,8 +717,7 @@ public class CreateExplosion {
 
             // calculate the armor reduction
             double reduction = 1.0;
-            if (living instanceof HumanEntity) {
-                HumanEntity human = (HumanEntity) living;
+            if (living instanceof HumanEntity human) {
                 double armorPiercing = Math.max(projectile.getPenetration(), 0);
                 armorPiercing = 0; // disable armor Piercing
                 reduction *= (1 - CannonsUtil.getArmorDamageReduced(human) / (armorPiercing + 1))
@@ -1038,8 +1029,7 @@ public class CreateExplosion {
             double damage = entry.getValue();
             Entity entity = entry.getKey();
 
-            if (damage >= 1 && entity instanceof LivingEntity) {
-                LivingEntity living = (LivingEntity) entity;
+            if (damage >= 1 && entity instanceof LivingEntity living) {
                 this.plugin.logDebug(
                         "apply damage to entity " + living.getType() + " by " + String.format("%.2f", damage));
                 double health = living.getHealth();

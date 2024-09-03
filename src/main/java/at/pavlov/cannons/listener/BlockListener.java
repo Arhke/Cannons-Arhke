@@ -175,7 +175,7 @@ public class BlockListener implements Listener
             if (plugin.getAiming().isInAimingMode(event.getPlayer().getUniqueId()))
                 aimingCannon = plugin.getAiming().getCannonInAimingMode(event.getPlayer());
 
-            if (cannon.isDestructibleBlock(event.getBlock().getLocation()) && (aimingCannon==null||!cannon.equals(aimingCannon)) && !plugin.getCommandListener().isSelectingMode(event.getPlayer())) {
+            if (cannon.isDestructibleBlock(event.getBlock().getLocation()) && (!cannon.equals(aimingCannon)) && !plugin.getCommandListener().isSelectingMode(event.getPlayer())) {
                 plugin.getCannonManager().removeCannon(cannon, false, true, BreakCause.PlayerBreak);
                 plugin.logDebug("cannon broken:  " + cannon.isDestructibleBlock(event.getBlock().getLocation()));
             }
@@ -186,8 +186,7 @@ public class BlockListener implements Listener
         }
 
         //if the the last block on a cannon is broken and signs are required
-        if (event.getBlock().getBlockData() instanceof WallSign){
-            WallSign sign = (WallSign) event.getBlock().getBlockData();
+        if (event.getBlock().getBlockData() instanceof WallSign sign){
             cannon = plugin.getCannonManager().getCannon(event.getBlock().getRelative(sign.getFacing().getOppositeFace()).getLocation(), null);
             plugin.logDebug("cancelled cannon sign  " + event.getBlock().getRelative(sign.getFacing().getOppositeFace()));
             if (cannon != null && cannon.getCannonDesign().isSignRequired() && cannon.getNumberCannonSigns() <= 1) {

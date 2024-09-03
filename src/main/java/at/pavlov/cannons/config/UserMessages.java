@@ -1,6 +1,7 @@
 package at.pavlov.cannons.config;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import at.pavlov.cannons.Enum.MessageEnum;
@@ -132,15 +133,11 @@ public class UserMessages {
 	    customLanguage = YamlConfiguration.loadConfiguration(customLanguageFile);
 	 
 	    // Look for defaults in the jar
-        try {
-            Reader defConfigStream = new InputStreamReader(plugin.getResource("localization/" + filename + ".yml"), "UTF8");
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            customLanguage.setDefaults(defConfig);
-        } catch (UnsupportedEncodingException e) {
-            plugin.logSevere("Unsupported encoding: " + e);
-        }
+        Reader defConfigStream = new InputStreamReader(plugin.getResource("localization/" + filename + ".yml"), StandardCharsets.UTF_8);
+        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+        customLanguage.setDefaults(defConfig);
 
-	}
+    }
 
 
 	private String getDataFolder()

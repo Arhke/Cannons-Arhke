@@ -260,7 +260,7 @@ public final class Cannons extends JavaPlugin
 		return this.isEnabled();
 	}
 
-	public final Config getMyConfig()
+	public Config getMyConfig()
 	{
 		return config;
 	}

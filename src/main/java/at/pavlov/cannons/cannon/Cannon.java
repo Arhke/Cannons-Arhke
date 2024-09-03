@@ -88,7 +88,7 @@ public class Cannon
     // tracking entity
     private UUID sentryEntity;
     // store older targets, so we do not target the same all the time
-    private ArrayList<UUID> sentryEntityHistory;
+    private final ArrayList<UUID> sentryEntityHistory;
     // how long this entity is targeted by this cannon
     private long sentryTargetingTime;
     // last time loading was tried and failed. Wait some time before trying again
@@ -111,10 +111,10 @@ public class Cannon
 
     //observer will see the impact of the target predictor
     //<Player name, remove after showing impact>
-    private HashMap<UUID, Boolean> observerMap = new HashMap<UUID, Boolean>();
+    private final HashMap<UUID, Boolean> observerMap = new HashMap<UUID, Boolean>();
 
     //a sentry cannon will not target a whitelisted player
-    private HashSet<UUID> whitelist = new HashSet<UUID>();
+    private final HashSet<UUID> whitelist = new HashSet<UUID>();
 
     // player who has build this cannon
     private UUID owner;
@@ -1707,8 +1707,7 @@ public class Cannon
      */
     public boolean equals(CannonDesign cannonDesign)
     {
-        if (designID.equals(cannonDesign.getDesignID())) return true;
-        return false;
+        return designID.equals(cannonDesign.getDesignID());
     }
 
     /**
@@ -1719,8 +1718,7 @@ public class Cannon
     @Override
     public boolean equals(Object obj)
     {
-        if (obj instanceof Cannon) {
-            Cannon obj2 = (Cannon) obj;
+        if (obj instanceof Cannon obj2) {
             return this.getUID().equals(obj2.getUID());
         }
         return false;
@@ -2423,9 +2421,7 @@ public class Cannon
 	{
         double chance = getOverloadingExplosionChance();
         //Cannons.getPlugin().logDebug("Chance of explosion (overloading) = " + design.getOverloadingChangeInc() + " * ((" + loadedGunpowder + " ( may to be - " + design.getMaxLoadableGunpowder_Normal() + ")) * " + design.getOverloadingChanceOfExplosionPerGunpowder() + ") ^ " + design.getOverloadingExponent() + " (may to be multiplied by " + tempValue + " / " + design.getMaximumTemperature() + " = " + chance);
-        if(Math.random()<chance)
-            return true;
-        return false;
+        return Math.random() < chance;
     }
 
     public long getFiredCannonballs() {

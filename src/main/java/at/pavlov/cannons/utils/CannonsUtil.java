@@ -73,11 +73,8 @@ public class CannonsUtil
 		File file = new File(folderPath);
 		if (file.isDirectory())
 		{
-			if (file.list().length > 0)
-			{
-				//folder is not empty
-				return false;
-			}
+            //folder is not empty
+            return file.list().length <= 0;
 		}
 		return true;
 	}
@@ -811,8 +808,8 @@ public class CannonsUtil
     public static HashMap<UUID, Entity> getNearbyEntities(Location l, int minRadius, int maxRadius){
         int chunkRadius = maxRadius < 16 ? 1 : (maxRadius - (maxRadius % 16))/16;
         HashMap<UUID, Entity> radiusEntities = new HashMap<UUID, Entity>();
-        for (int chX = 0 -chunkRadius; chX <= chunkRadius; chX ++){
-            for (int chZ = 0 -chunkRadius; chZ <= chunkRadius; chZ++){
+        for (int chX = -chunkRadius; chX <= chunkRadius; chX ++){
+            for (int chZ = -chunkRadius; chZ <= chunkRadius; chZ++){
                 int x=(int) l.getX(),y=(int) l.getY(),z=(int) l.getZ();
                 for (Entity e : new Location(l.getWorld(),x+(chX*16),y,z+(chZ*16)).getChunk().getEntities()){
                     double dist = e.getLocation().distance(l);
@@ -834,15 +831,14 @@ public class CannonsUtil
     public static HashMap<UUID, Target> getNearbyTargets(Location l, int minRadius, int maxRadius){
         int chunkTargets = maxRadius < 16 ? 1 : (maxRadius - (maxRadius % 16))/16;
         HashMap<UUID, Target> radiusTargets = new HashMap<UUID, Target>();
-        for (int chX = 0 -chunkTargets; chX <= chunkTargets; chX ++){
-            for (int chZ = 0 -chunkTargets; chZ <= chunkTargets; chZ++){
+        for (int chX = -chunkTargets; chX <= chunkTargets; chX ++){
+            for (int chZ = -chunkTargets; chZ <= chunkTargets; chZ++){
                 int x=(int) l.getX(),y=(int) l.getY(),z=(int) l.getZ();
                 for (Entity e : new Location(l.getWorld(),x+(chX*16),y,z+(chZ*16)).getChunk().getEntities()){
                     if (e.getWorld().equals(l.getWorld())) {
                         double dist = e.getLocation().distance(l);
                         if (e instanceof LivingEntity && !e.isDead() && minRadius <= dist && dist <= maxRadius && e.getLocation().getBlock() != l.getBlock()) {
-                            if ((e instanceof Player)){
-                                Player p = (Player) e;
+                            if ((e instanceof Player p)){
                                 if (p.getGameMode() == GameMode.CREATIVE || p.hasPermission("cannons.admin.notarget"))
                                     continue;
                             }
@@ -907,14 +903,11 @@ public class CannonsUtil
             return false;
         if (bPlayer.isOnline()){
             Player player = (Player) bPlayer;
-            if (player.isOnline())
-                return true;
+            return player.isOnline();
         }
         else{
-            if(bPlayer.hasPlayedBefore())
-                return true;
+            return bPlayer.hasPlayedBefore();
         }
-        return false;
     }
 
 

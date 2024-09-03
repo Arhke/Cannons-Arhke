@@ -41,11 +41,11 @@ public class Commands implements TabExecutor
     private final PersistenceDatabase persistenceDatabase;
 
     //<player,command to be performed>;
-    private HashMap<UUID,SelectCannon> cannonSelector = new HashMap<>();
+    private final HashMap<UUID,SelectCannon> cannonSelector = new HashMap<>();
     //<player,command to be performed>;
-    private HashMap<UUID,Boolean> selectTargetBoolean = new HashMap<>();
+    private final HashMap<UUID,Boolean> selectTargetBoolean = new HashMap<>();
     //<player,playerUID>;
-    private HashMap<UUID,UUID> whitelistPlayer = new HashMap<>();
+    private final HashMap<UUID,UUID> whitelistPlayer = new HashMap<>();
 
 
 
