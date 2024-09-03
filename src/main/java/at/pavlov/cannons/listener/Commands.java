@@ -592,7 +592,7 @@ public class Commands implements TabExecutor
                 }
                 else
                 {
-                    plugin.logInfo("Cannons plugin v" + plugin.getPluginDescription().getVersion() + " is running");
+                    plugin.logInfo("Cannons plugin v" + plugin.getPluginMeta().getVersion() + " is running");
                 }
             }
             return true;
