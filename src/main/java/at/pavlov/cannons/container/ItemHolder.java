@@ -129,6 +129,8 @@ public class ItemHolder
 
 	public ItemStack toItemStack(int amount)
 	{
+		if (amount <= 0)
+			return null;
 		ItemStack item = new ItemStack(material, amount);
 		ItemMeta meta = item.getItemMeta();
 		if (this.hasDisplayName())

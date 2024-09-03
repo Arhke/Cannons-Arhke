@@ -39,13 +39,13 @@ public class Cannon
 
     // direction the cannon is facing
     private BlockFace cannonDirection;
-    // the location is describe by the offset of the cannon and the design
+    // the location is described by the offset of the cannon and the design
     private Vector offset;
     // world of the cannon
     private UUID world;
     // if the cannon is on a ship, the operation might be limited (e.g smaller angles to adjust the cannon)
     private boolean onShip;
-    // with which velocity the canno is moving (set by other plugins)
+    // with which velocity the cannon is moving (set by other plugins)
     private Vector velocity;
 
     // time the cannon was last time fired
@@ -363,8 +363,11 @@ public class Cannon
             item = mat.toItemStack(item.getAmount());
             item = InventoryManagement.removeItem(invlist, item);
 
+            if (item == null || item.isEmpty()) {
+                return true;
+            }
 
-            int usedItems= toCool - item.getAmount();
+            int usedItems = toCool - item.getAmount();
             this.setTemperature(this.getTemperature()-usedItems*design.getCoolingAmount());
 
             //put used items back to the chest (not if the item is AIR)
@@ -374,7 +377,7 @@ public class Cannon
                 InventoryManagement.addItemInChests(invlist, itemUsed);
 
             //if all items have been removed we are done
-            if (item.getAmount() == 0)
+            if (item.getAmount() <= 0 || item.isEmpty())
                 return true;
         }
         return false;
